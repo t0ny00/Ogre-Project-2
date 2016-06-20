@@ -1,5 +1,8 @@
 #include "Ogre\ExampleApplication.h"
 
+#define coinNumber 30
+
+
 class Example1 : public ExampleApplication
 {
 
@@ -29,6 +32,8 @@ public:
 		LuzPuntual02->setType(Ogre::Light::LT_DIRECTIONAL);
 		LuzPuntual02->setDiffuseColour(1.0,1.0,1.0);
 		LuzPuntual02->setDirection(Ogre::Vector3( -1, -1, -1 ));
+		LuzPuntual01->setCastShadows(false);
+		LuzPuntual02->setCastShadows(false);
 
 		//Rueda
 		Ogre::SceneNode* _nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
@@ -98,6 +103,53 @@ public:
 
 
 
+		//Monedas
+		Ogre::Entity* entityCoin[coinNumber];
+		Ogre::SceneNode* nodeCoin[coinNumber];
+		for (int i = 0; i < (sizeof(entityCoin) / sizeof(entityCoin[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityCoin[i] = mSceneMgr->createEntity("Coin " + number, "sphere.mesh");
+			entityCoin[i]->setMaterialName("Gold_3");
+			nodeCoin[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("NodeCoin " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			nodeCoin[i]->setPosition(0 , 7, (i+2) * 300);
+			nodeCoin[i]->setScale(0.05,0.05,0.05);
+			nodeCoin[i]->attachObject(entityCoin[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		nodeCoin[2]->translate(65,0,0);
+		nodeCoin[3]->translate(30,0,0);
+		nodeCoin[4]->translate(15,0,0);
+		nodeCoin[6]->translate(-70,0,0);
+		nodeCoin[7]->translate(-25,0,0);
+		nodeCoin[9]->translate(-20,0,0);
+		nodeCoin[10]->translate(-20,0,0);
+		nodeCoin[11]->translate(20,0,0);
+		nodeCoin[12]->translate(20,0,0);
+		nodeCoin[13]->translate(0,0,0);
+		nodeCoin[14]->translate(-20,0,0);
+		nodeCoin[15]->translate(40,0,0);
+		nodeCoin[16]->translate(60,0,0);
+		nodeCoin[17]->translate(25,0,0);
+		nodeCoin[18]->translate(-45,0,0);
+		nodeCoin[19]->translate(-30,0,0);
+		nodeCoin[20]->translate(0,20,0);
+		nodeCoin[21]->translate(70,10,25);
+		nodeCoin[22]->translate(-30,-10,25);
+		nodeCoin[23]->translate(-70,-20,25);
+		nodeCoin[24]->translate(-15,15,25);
+		nodeCoin[25]->translate(0,-20,25);
+		nodeCoin[26]->translate(50,0,25);
+		nodeCoin[27]->translate(15,30,25);
+		nodeCoin[28]->translate(-55,25,25);
+		nodeCoin[29]->translate(0,0,25);
 
 	}
 

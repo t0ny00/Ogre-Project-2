@@ -27,4 +27,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\OgreSDK_vc11_v1-9-0\media\materials\scripts\AntonioScaramazza-CarlosMartinez-ProyectoOgreFinal.material">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
