@@ -3,10 +3,98 @@
 #define coinNumber 30
 
 
+Ogre::SceneNode* nodeObst1[7];
+Ogre::SceneNode* nodeObst2[6];
+Ogre::SceneNode* nodeObst3[7];
+
+class FrameListenerClase : public Ogre::FrameListener{
+
+private:
+	Ogre::SceneNode* _nodoF01;
+	OIS::InputManager* _man;
+	OIS::Keyboard* _key;
+	OIS::Mouse* _mouse;
+	Ogre::Camera* _cam;
+
+public:
+	FrameListenerClase(Ogre::Camera* cam, RenderWindow* win){
+
+		//Configuracion para captura de teclado y mouse 
+		size_t windowHnd = 0;
+		std::stringstream windowHndStr;
+		win->getCustomAttribute("WINDOW",&windowHnd);
+		windowHndStr << windowHnd;
+
+		OIS::ParamList pl;
+		pl.insert(std::make_pair(std::string("WINDOW"),windowHndStr.str()));
+
+		//eventos
+		_man = OIS::InputManager::createInputSystem(pl);
+		_key = static_cast<OIS::Keyboard*>(_man->createInputObject(OIS::OISKeyboard,false));
+		_mouse = static_cast<OIS::Mouse*>(_man->createInputObject(OIS::OISMouse,false));
+		_cam = cam;
+		
+		
+	}
+
+
+	~FrameListenerClase(){
+		_man->destroyInputObject(_key);
+		_man->destroyInputObject(_mouse);
+		OIS::InputManager::destroyInputSystem(_man);
+	}
+
+	bool frameStarted(const Ogre::FrameEvent &evt){
+		float cam_speed = 20;
+		_key->capture();
+		_mouse->capture();
+
+		float movSpeed=10.0f;
+		Ogre::Vector3 tmov(0,0,0);
+		Ogre::Vector3 tcam(0,0,0);
+
+		//Camara
+		if(_key->isKeyDown(OIS::KC_LSHIFT))
+			cam_speed += 30;
+
+		if (_key->isKeyDown(OIS::KC_ESCAPE))
+			return false;
+
+		if(_key->isKeyDown(OIS::KC_W))
+			tcam += Ogre::Vector3(0,0,-cam_speed);
+		
+		if(_key->isKeyDown(OIS::KC_S))
+			tcam += Ogre::Vector3(0,0,cam_speed);
+
+		if(_key->isKeyDown(OIS::KC_A))
+			tcam += Ogre::Vector3(-cam_speed,0,0);
+		
+		if(_key->isKeyDown(OIS::KC_D))
+			tcam += Ogre::Vector3(cam_speed,0,0);
+
+		
+		
+
+		
+
+		//camara control
+		float rotX = _mouse->getMouseState().X.rel * evt.timeSinceLastFrame*-1;
+		float rotY = _mouse->getMouseState().Y.rel * evt.timeSinceLastFrame*-1;
+		_cam->yaw(Ogre::Radian(rotX));
+		_cam->pitch(Ogre::Radian(rotY));
+		_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);
+
+		return true;
+	}
+
+};
+
 class Example1 : public ExampleApplication
 {
 
 public:
+
+	Ogre::FrameListener* FrameListener01;
 
 	void createCamera() {
 
@@ -14,6 +102,12 @@ public:
 		mCamera->setPosition(0,100,-200);
 		mCamera->lookAt(0,0,100);
 		mCamera->setNearClipDistance(1);
+
+	}
+
+	void createFrameListener(){
+		FrameListener01 = new FrameListenerClase(mCamera,mWindow);
+		mRoot->addFrameListener(FrameListener01);
 
 	}
 
@@ -126,10 +220,11 @@ public:
 		}
 
 		nodeCoin[2]->translate(65,0,0);
-		nodeCoin[3]->translate(30,0,0);
-		nodeCoin[4]->translate(15,0,0);
+		nodeCoin[3]->translate(55,0,0);
+		nodeCoin[4]->translate(-20,0,0);
+		nodeCoin[5]->translate(20,0,0);
 		nodeCoin[6]->translate(-70,0,0);
-		nodeCoin[7]->translate(-25,0,0);
+		nodeCoin[7]->translate(25,0,0);
 		nodeCoin[9]->translate(-20,0,0);
 		nodeCoin[10]->translate(-20,0,0);
 		nodeCoin[11]->translate(20,0,0);
@@ -198,7 +293,7 @@ public:
 		nodeDecor01->setScale(2,2,2);
 		
 
-		//Decor2
+		//Decor 2
 		Ogre::SceneNode *nodeDecor02 = mSceneMgr->createSceneNode();
 		mSceneMgr->getRootSceneNode()->addChild(nodeDecor02);
 
@@ -308,6 +403,63 @@ public:
 			nodeDecor6[i]->setPosition(temp*190 ,40, i * 100 + 5700);
 			nodeDecor6[i]->setScale(0.5,0.5,0.5);
 			nodeDecor6[i]->attachObject(entityDecor6[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		//Obstacles 1
+
+		Ogre::Entity* entityObst1[7];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityObst1) / sizeof(entityObst1[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityObst1[i] = mSceneMgr->createEntity("Obst1 " + number, "spine.mesh");
+			entityObst1[i]->setMaterialName("lambert1");
+			nodeObst1[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeObst1 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst1[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeObst1[i]->setPosition(0 , 0 , i * 50 + 500);
+			nodeObst1[i]->setScale(0.5,0.5,0.5);
+			nodeObst1[i]->attachObject(entityObst1[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		nodeObst1[1]->translate(-50,0,0);
+		nodeObst1[2]->translate(45,0,0);
+		//nodeObst1[3]->translate(0,0,0);
+		nodeObst1[4]->translate(-35,0,0);
+		nodeObst1[5]->translate(35,0,0);
+		nodeObst1[6]->translate(20,0,50);
+
+		//Obstacles 2 (Moving)
+
+		Ogre::Entity* entityObst2[6];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityObst2) / sizeof(entityObst2[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityObst2[i] = mSceneMgr->createEntity("Obst2 " + number, "spine.mesh");
+			entityObst2[i]->setMaterialName("lambert1");
+			nodeObst2[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeObst2 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst2[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeObst2[i]->setPosition(0 , 0 , i * 125 + 1400);
+			nodeObst2[i]->setScale(0.5,0.5,0.5);
+			nodeObst2[i]->attachObject(entityObst2[i]);
 			// Let us know how many entities we have on screen, completely unnecessary
 			printf("Created Entity No. %i \n", i);
 		}
