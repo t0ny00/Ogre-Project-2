@@ -5,7 +5,12 @@
 
 Ogre::SceneNode* nodeObst1[7];
 Ogre::SceneNode* nodeObst2[6];
-Ogre::SceneNode* nodeObst3[7];
+Ogre::SceneNode* nodeObst3[6];
+
+
+void rotateObstacle(Ogre::SceneNode *nodeObst, float delta){
+	nodeObst->yaw(Ogre::Radian(nodeObst->getOrientation().x + delta));
+}
 
 class FrameListenerClase : public Ogre::FrameListener{
 
@@ -83,6 +88,19 @@ public:
 		_cam->yaw(Ogre::Radian(rotX));
 		_cam->pitch(Ogre::Radian(rotY));
 		_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);
+
+		
+		for (int i = 0; i < (sizeof(nodeObst1) / sizeof(nodeObst1[0])); i++){
+			rotateObstacle(nodeObst1[i],4 * evt.timeSinceLastFrame);
+		};
+
+		for (int i = 0; i < (sizeof(nodeObst2) / sizeof(nodeObst2[0])); i++){
+			rotateObstacle(nodeObst2[i],4 * evt.timeSinceLastFrame);
+		};
+
+		for (int i = 0; i < (sizeof(nodeObst2) / sizeof(nodeObst2[0])); i++){
+			rotateObstacle(nodeObst3[i],4 * evt.timeSinceLastFrame);
+		};
 
 		return true;
 	}
@@ -463,6 +481,44 @@ public:
 			// Let us know how many entities we have on screen, completely unnecessary
 			printf("Created Entity No. %i \n", i);
 		}
+
+		//Obstacles 3
+
+		Ogre::Entity* entityObst3[6];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityObst3) / sizeof(entityObst3[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityObst3[i] = mSceneMgr->createEntity("Obst3 " + number, "spine.mesh");
+			entityObst3[i]->setMaterialName("lambert1");
+			nodeObst3[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeObst3 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeObst3[i]->setPosition(0 , 0 , i * 150 + 5600);
+			nodeObst3[i]->setScale(0.5,0.5,0.5);
+			nodeObst3[i]->attachObject(entityObst3[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		nodeObst3[1]->translate(-50,0,0);
+		nodeObst3[2]->translate(45,0,0);
+		//nodeObst3[3]->translate(0,0,0);
+		nodeObst3[4]->translate(-35,0,0);
+		nodeObst3[5]->translate(35,0,0);
+		
+
+
+
+
+
+
 
 	}
 
