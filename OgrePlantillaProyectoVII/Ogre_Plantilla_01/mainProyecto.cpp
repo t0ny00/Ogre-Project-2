@@ -4,12 +4,37 @@
 
 
 Ogre::SceneNode* nodeObst1[7];
-Ogre::SceneNode* nodeObst2[6];
+Ogre::SceneNode* nodeObst2[8];
 Ogre::SceneNode* nodeObst3[6];
+Ogre::SceneNode* nodeRock01[8];
+Ogre::SceneNode* nodeRock02[8];
+Ogre::SceneNode* nodeRock03[8];
+Ogre::SceneNode* nodeRock04[8];
+Ogre::SceneNode* nodeCoin[coinNumber];
 
+int movingObstDir[8];
+int movingObstSpeed[8];
+
+//Ogre::AnimationState* animationState;
+//Ogre::Animation* animationObstSpin[19];
 
 void rotateObstacle(Ogre::SceneNode *nodeObst, float delta){
 	nodeObst->yaw(Ogre::Radian(nodeObst->getOrientation().x + delta));
+}
+
+void rotateRock(Ogre::SceneNode *nodeObst, float delta){
+	Quaternion temp = nodeObst->getOrientation();
+	nodeObst->rotate(Quaternion (Degree(delta), Vector3::UNIT_Y));
+	nodeObst->rotate(Quaternion (Degree(delta), Vector3::UNIT_X));
+}
+
+void moveObstacle(Ogre::SceneNode *nodeObst, float speed, int &dir){
+	if (dir == 0) nodeObst->translate(speed ,0,0);
+	else nodeObst->translate(-speed ,0,0);
+	if (nodeObst->getPosition().x > 200 && dir == 0) dir = 1;
+	else if (nodeObst->getPosition().x < -200 && dir == 1) dir = 0;
+
+
 }
 
 class FrameListenerClase : public Ogre::FrameListener{
@@ -60,7 +85,7 @@ public:
 
 		//Camara
 		if(_key->isKeyDown(OIS::KC_LSHIFT))
-			cam_speed += 30;
+			cam_speed += 300;
 
 		if (_key->isKeyDown(OIS::KC_ESCAPE))
 			return false;
@@ -89,6 +114,7 @@ public:
 		_cam->pitch(Ogre::Radian(rotY));
 		_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);
 
+		//animationState->addTime(evt.timeSinceLastFrame);
 		
 		for (int i = 0; i < (sizeof(nodeObst1) / sizeof(nodeObst1[0])); i++){
 			rotateObstacle(nodeObst1[i],4 * evt.timeSinceLastFrame);
@@ -96,10 +122,18 @@ public:
 
 		for (int i = 0; i < (sizeof(nodeObst2) / sizeof(nodeObst2[0])); i++){
 			rotateObstacle(nodeObst2[i],4 * evt.timeSinceLastFrame);
+			moveObstacle(nodeObst2[i], movingObstSpeed[i]  * evt.timeSinceLastFrame, movingObstDir[i]);
 		};
 
-		for (int i = 0; i < (sizeof(nodeObst2) / sizeof(nodeObst2[0])); i++){
+		for (int i = 0; i < (sizeof(nodeObst3) / sizeof(nodeObst3[0])); i++){
 			rotateObstacle(nodeObst3[i],4 * evt.timeSinceLastFrame);
+		};
+
+		for (int i = 0; i < (sizeof(nodeRock01) / sizeof(nodeRock01[0])); i++){
+			rotateRock(nodeRock01[i],15 * evt.timeSinceLastFrame);
+			rotateRock(nodeRock02[i],17 * evt.timeSinceLastFrame);
+			rotateRock(nodeRock03[i],19 * evt.timeSinceLastFrame);
+			rotateRock(nodeRock04[i],32 * evt.timeSinceLastFrame);
 		};
 
 		return true;
@@ -255,13 +289,13 @@ public:
 		nodeCoin[18]->translate(-45,0,0);
 		nodeCoin[19]->translate(-30,0,0);
 		nodeCoin[20]->translate(0,20,0);
-		nodeCoin[21]->translate(70,10,25);
-		nodeCoin[22]->translate(-30,-10,25);
-		nodeCoin[23]->translate(-70,-20,25);
+		nodeCoin[21]->translate(95,25,25);
+		nodeCoin[22]->translate(-50,-30,25);
+		nodeCoin[23]->translate(-100,-40,25);
 		nodeCoin[24]->translate(-15,15,25);
-		nodeCoin[25]->translate(0,-20,25);
-		nodeCoin[26]->translate(50,0,25);
-		nodeCoin[27]->translate(15,30,25);
+		nodeCoin[25]->translate(0,-50,25);
+		nodeCoin[26]->translate(70,0,25);
+		nodeCoin[27]->translate(15,80,25);
 		nodeCoin[28]->translate(-55,25,25);
 		nodeCoin[29]->translate(0,0,25);
 
@@ -459,7 +493,7 @@ public:
 
 		//Obstacles 2 (Moving)
 
-		Ogre::Entity* entityObst2[6];
+		Ogre::Entity* entityObst2[8];
 		
 		temp = 1;
 		for (int i = 0; i < (sizeof(entityObst2) / sizeof(entityObst2[0])); i++) // Loop through the entities
@@ -513,12 +547,155 @@ public:
 		nodeObst3[4]->translate(-35,0,0);
 		nodeObst3[5]->translate(35,0,0);
 		
+		for (int i = 0; i < 8; i++){
+			movingObstDir[i] = rand() % 2;
+			movingObstSpeed[i] = rand() % 20 + 115;
+		};
 
 
+		//Rocks 01
 
+		Ogre::Entity* entityRock01[8];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityRock01) / sizeof(entityRock01[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityRock01[i] = mSceneMgr->createEntity("Rock01 " + number, "roca01.mesh");
+			entityRock01[i]->setMaterialName("lambert1");
+			nodeRock01[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock01 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeRock01[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 250 + 7000);
+			//nodeRock01[i]->setPosition(0,0 , i * 250 + 7000);
 
+			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock01[i]->attachObject(entityRock01[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
 
+		//Rocks 02
 
+		Ogre::Entity* entityRock02[8];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityRock02) / sizeof(entityRock02[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityRock02[i] = mSceneMgr->createEntity("Rock02 " + number, "roca02.mesh");
+			entityRock02[i]->setMaterialName("lambert1");
+			nodeRock02[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock02 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeRock02[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 350 + 6800);
+			//nodeRock02[i]->setPosition(0,0 , i * 350 + 6800);
+
+			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock02[i]->attachObject(entityRock02[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		//Rocks 03
+
+		Ogre::Entity* entityRock03[8];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityRock03) / sizeof(entityRock03[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityRock03[i] = mSceneMgr->createEntity("Rock03 " + number, "roca03.mesh");
+			entityRock03[i]->setMaterialName("lambert1");
+			nodeRock03[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock03 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeRock03[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 315 + 7500);
+			//nodeRock03[i]->setPosition(0,0 , i * 315 + 7500);
+
+			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock03[i]->attachObject(entityRock03[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		//Rocks 04
+
+		Ogre::Entity* entityRock04[8];
+		
+		temp = 1;
+		for (int i = 0; i < (sizeof(entityRock04) / sizeof(entityRock04[0])); i++) // Loop through the entities
+		{
+			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
+			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
+ 
+			// Add the current element number to the entity/scene node name to avoid confusion
+			entityRock04[i] = mSceneMgr->createEntity("Rock04 " + number, "roca04.mesh");
+			entityRock04[i]->setMaterialName("lambert1");
+			nodeRock04[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock04 " + number);
+ 
+			// Distance the nodes from each other, so they aren't at the same place, and then attach them
+			temp *= -1;
+			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
+			nodeRock04[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 375 + 7700);
+			//nodeRock04[i]->setPosition(0,0 , i * 375 + 7700);
+
+			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock04[i]->attachObject(entityRock04[i]);
+			// Let us know how many entities we have on screen, completely unnecessary
+			printf("Created Entity No. %i \n", i);
+		}
+
+		////Animacion Torreta 4
+		//float duration2 = 4.0;
+		//Ogre::Animation* animationTurret401 = mSceneMgr->createAnimation("AnimTurret401",duration2);
+		//animationTurret401->setRotationInterpolationMode(Animation::RIM_LINEAR);
+		//Ogre::NodeAnimationTrack* Turret401Track = animationTurret401->createNodeTrack(0,nodeObst1[1]);
+		//Ogre::TransformKeyFrame* keyTurret04;
+
+		//keyTurret04 = Turret401Track->createNodeKeyFrame(0.0);
+		//keyTurret04->setRotation(Quaternion (Degree(0), Vector3::UNIT_Y));
+		//keyTurret04->setScale(nodeObst1[1]->getScale());
+		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
+
+		//keyTurret04 = Turret401Track->createNodeKeyFrame(1.0);
+		//keyTurret04->setRotation(Quaternion (Degree(90), Vector3::UNIT_Y));
+		//keyTurret04->setScale(nodeObst1[1]->getScale());
+		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
+
+		//keyTurret04 = Turret401Track->createNodeKeyFrame(2.0);
+		//keyTurret04->setRotation(Quaternion (Degree(180), Vector3::UNIT_Y));
+		//keyTurret04->setScale(nodeObst1[1]->getScale());
+		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
+
+		//keyTurret04 = Turret401Track->createNodeKeyFrame(3.0);
+		//keyTurret04->setRotation(Quaternion (Degree(270), Vector3::UNIT_Y));
+		//keyTurret04->setScale(nodeObst1[1]->getScale());
+		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
+
+		//keyTurret04 = Turret401Track->createNodeKeyFrame(4.0);
+		//keyTurret04->setRotation(Quaternion (Degree(0), Vector3::UNIT_Y));
+		//keyTurret04->setScale(nodeObst1[1]->getScale());
+		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
+
+		//animationState = mSceneMgr->createAnimationState("AnimTurret401");
+		//animationState->setEnabled(true);
+		//animationState->setLoop(true);
 
 	}
 
