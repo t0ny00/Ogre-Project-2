@@ -2,7 +2,15 @@
 
 #define coinNumber 30
 
+float r1;
 
+float r2;
+
+// car 12.5
+// coin 0.5
+//obs 0.5
+
+Ogre::SceneNode* _nodeChasis01;
 Ogre::SceneNode* nodeObst1[7];
 Ogre::SceneNode* nodeObst2[8];
 Ogre::SceneNode* nodeObst3[6];
@@ -35,6 +43,13 @@ void moveObstacle(Ogre::SceneNode *nodeObst, float speed, int &dir){
 	else if (nodeObst->getPosition().x < -200 && dir == 1) dir = 0;
 
 
+}
+
+void bSphereTest(Ogre::SceneNode *nodeObst ){
+	Ogre::Vector3 relPos = _nodeChasis01->getPosition() - nodeObst->getPosition();;
+	float dist = relPos.x * relPos.x + relPos.y * relPos.y + relPos.z * relPos.z;
+	float minDist = r1 + r2;
+	if (dist <= minDist * minDist){printf("\n\n Contacto  %f   %f",r1,r2);}
 }
 
 class FrameListenerClase : public Ogre::FrameListener{
@@ -102,9 +117,37 @@ public:
 		if(_key->isKeyDown(OIS::KC_D))
 			tcam += Ogre::Vector3(cam_speed,0,0);
 
+		if(_key->isKeyDown(OIS::KC_V))
+			r1 += 0.5;
+
+		if(_key->isKeyDown(OIS::KC_B))
+			r1 -= 0.5;
+
+		if(_key->isKeyDown(OIS::KC_N))
+			r2 += 0.5;
+
+		if(_key->isKeyDown(OIS::KC_M))
+			r2 -= 0.5;
+
+		if(_key->isKeyDown(OIS::KC_C))
+			system("cls");
+
+		//Car test
+		Vector3 mov(0,0,0);
+		if(_key->isKeyDown(OIS::KC_I))
+			mov += Ogre::Vector3(0,0,50);
 		
+		if(_key->isKeyDown(OIS::KC_J))
+			mov += Ogre::Vector3(50,0,0);
+
+		if(_key->isKeyDown(OIS::KC_K))
+			mov += Ogre::Vector3(0,0,-50);
+		
+		if(_key->isKeyDown(OIS::KC_L))
+			mov += Ogre::Vector3(-50,0,0);
 		
 
+		_nodeChasis01->translate(mov*evt.timeSinceLastFrame);
 		
 
 		//camara control
@@ -136,6 +179,7 @@ public:
 			rotateRock(nodeRock04[i],32 * evt.timeSinceLastFrame);
 		};
 
+		bSphereTest(nodeObst1[0]);
 		return true;
 	}
 
@@ -166,6 +210,9 @@ public:
 	void createScene()
 	{
 
+		r1 = 0;
+		r2 = 0;
+
 		mSceneMgr->setAmbientLight(Ogre::ColourValue(1.0, 1.0, 1.0));
 		mSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_ADDITIVE);
 		mSceneMgr->setSkyDome(true, "StarSky", 5, 8);
@@ -192,13 +239,14 @@ public:
 		_nodeRueda01->attachObject(_entRueda01);
 
 		//Chasis
-		Ogre::SceneNode* _nodeChasis01 = mSceneMgr->createSceneNode("Chasis01");
+		_nodeChasis01 = mSceneMgr->createSceneNode("Chasis01");
 		mSceneMgr->getRootSceneNode()->addChild(_nodeChasis01);
 			
 		Ogre::Entity* _entChasis01 = mSceneMgr->createEntity("entChasis01", "chasisCarro.mesh");
 		_entChasis01->setMaterialName("shCarro01");
 		_nodeChasis01->attachObject(_entChasis01);
 
+		
 
 		//BordePista
 		Ogre::SceneNode* _nodeBPista = mSceneMgr->createSceneNode("BordePista");
@@ -252,7 +300,7 @@ public:
 
 		//Monedas
 		Ogre::Entity* entityCoin[coinNumber];
-		Ogre::SceneNode* nodeCoin[coinNumber];
+
 		for (int i = 0; i < (sizeof(entityCoin) / sizeof(entityCoin[0])); i++) // Loop through the entities
 		{
 			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
