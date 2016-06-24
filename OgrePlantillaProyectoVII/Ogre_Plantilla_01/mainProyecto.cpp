@@ -21,8 +21,28 @@ Ogre::SceneNode* nodeRock03[8];
 Ogre::SceneNode* nodeRock04[8];
 Ogre::SceneNode* nodeCoin[coinNumber];
 
+Ogre::SceneNode* nodePlayer;
+Ogre::SceneNode* rotatorRueda01;
+Ogre::SceneNode* rotatorRueda02;
+Ogre::SceneNode* nodeRueda01;
+Ogre::SceneNode* nodeRueda02;
+Ogre::SceneNode* nodeRueda03;
+Ogre::SceneNode* nodeRueda04;
+
 int movingObstDir[8];
 int movingObstSpeed[8];
+
+float inertia_time = 0.0;
+float inertia_speed = 0.0;
+float turned_right_time = 0.0;
+float turned_left_time = 0.0;
+int turnLeftCounter = 21;
+int unturnLeftCounter = 21;
+bool turnedLeft = false;
+
+int turnRightCounter = 21;
+int unturnRightCounter = 21;
+bool turnedRight = false;
 
 //Ogre::AnimationState* animationState;
 //Ogre::Animation* animationObstSpin[19];
@@ -51,6 +71,22 @@ bool collision(Ogre::SceneNode *nodeCar, Ogre::SceneNode *nodeObj, float radius1
 	float dist = relPos.x * relPos.x + relPos.y * relPos.y + relPos.z * relPos.z;
 	float minDist = radius1 + radius2;
 	return dist <= minDist * minDist;
+}
+
+void rotateWheel(Ogre::SceneNode *nodeWheel, float delta){
+	nodeWheel->pitch(Ogre::Radian(nodeWheel->getOrientation().y + delta));
+}
+
+void turnRightWheels(Ogre::SceneNode *nodeWheel1,Ogre::SceneNode *nodeWheel2, float delta){
+	nodeWheel1->yaw(Ogre::Radian(nodeWheel1->getOrientation().x + delta));
+	nodeWheel2->yaw(Ogre::Radian(nodeWheel2->getOrientation().x + delta));
+}
+
+
+void turnLeftWheels(Ogre::SceneNode *nodeWheel1,Ogre::SceneNode *nodeWheel2, float delta){
+	
+	nodeWheel1->yaw(Ogre::Radian(nodeWheel1->getOrientation().x + delta));
+	nodeWheel2->yaw(Ogre::Radian(nodeWheel2->getOrientation().x + delta));
 }
 
 class FrameListenerClase : public Ogre::FrameListener{
@@ -135,20 +171,38 @@ public:
 
 		//Car test
 		Vector3 mov(0,0,0);
-		if(_key->isKeyDown(OIS::KC_I))
-			mov += Ogre::Vector3(0,0,100);
+		if(_key->isKeyDown(OIS::KC_I)){
+			inertia_time = 2.0;
+			inertia_speed = 1.0;
+		}
 		
-		if(_key->isKeyDown(OIS::KC_J))
-			mov += Ogre::Vector3(100,0,0);
+		if(_key->isKeyDown(OIS::KC_J)){
+			if(inertia_speed > 0) mov += Ogre::Vector3(100,0,0);
+			if (!turnedLeft){
+				turned_left_time = 0.2;
+				turnedLeft = true;
+				turnLeftCounter = 0;
+				unturnLeftCounter = 0;
+			} 
+			turned_left_time = 0.2;
+		}
 
 		if(_key->isKeyDown(OIS::KC_K))
 			mov += Ogre::Vector3(0,0,-100);
 		
-		if(_key->isKeyDown(OIS::KC_L))
-			mov += Ogre::Vector3(-100,0,0);
+		if(_key->isKeyDown(OIS::KC_L)){
+			if(inertia_speed > 0) mov += Ogre::Vector3(-100,0,0);
+			if (!turnedRight){
+				turned_right_time = 0.2;
+				turnedRight = true;
+				turnRightCounter = 0;
+				unturnRightCounter = 0;
+			}
+			turned_right_time = 0.2;
+		}
 		
 
-		_nodeChasis01->translate(mov*evt.timeSinceLastFrame);
+		
 		
 
 		//camara control
@@ -159,6 +213,54 @@ public:
 		_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);
 
 		//animationState->addTime(evt.timeSinceLastFrame);
+
+		if(inertia_speed > 0.0){
+			mov += Ogre::Vector3(0,0,100*inertia_speed);
+			rotateWheel(nodeRueda01,4 * inertia_speed * evt.timeSinceLastFrame);
+			rotateWheel(nodeRueda02,4 * inertia_speed * evt.timeSinceLastFrame);
+			rotateWheel(nodeRueda03,4 * inertia_speed * evt.timeSinceLastFrame);
+			rotateWheel(nodeRueda04,4 * inertia_speed * evt.timeSinceLastFrame);
+			inertia_time -= evt.timeSinceLastFrame;
+			inertia_speed -= 0.05;
+		}
+
+		if (turnedLeft){
+			if (turnLeftCounter < 10) {
+				turnLeftWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
+				turnLeftCounter++;
+			} else {
+				if (turned_left_time > 0.0){
+					turned_left_time -= evt.timeSinceLastFrame;
+				} else {
+					if(unturnLeftCounter < 10){
+						turnLeftWheels(rotatorRueda01,rotatorRueda02, - 4 * 0.015);
+						unturnLeftCounter++;
+					} else {
+						turnedLeft = false;
+					}
+				}
+			}
+		}
+
+		if (turnedRight){
+			if (turnRightCounter < 10) {
+				turnRightWheels(rotatorRueda01,rotatorRueda02, -4 * 0.015);
+				turnRightCounter++;
+			} else {
+				if (turned_right_time > 0.0){
+					turned_right_time -= evt.timeSinceLastFrame;
+				} else {
+					if(unturnRightCounter < 10){
+						turnRightWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
+						unturnRightCounter++;
+					} else {
+						turnedRight = false;
+					}
+				}
+			}
+		}
+
+		_nodeChasis01->translate(mov*evt.timeSinceLastFrame);
 		
 		for (int i = 0; i < (sizeof(nodeObst1) / sizeof(nodeObst1[0])); i++){
 			rotateObstacle(nodeObst1[i],4 * evt.timeSinceLastFrame);
@@ -292,14 +394,6 @@ public:
 		//LuzPuntual04->setCastShadows(false);
 		////LuzPuntual04->setAttenuation(600, 0.0, 0.001, 0.0001);
 
-		//Rueda
-		Ogre::SceneNode* _nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
-		mSceneMgr->getRootSceneNode()->addChild(_nodeRueda01);
-			
-		Ogre::Entity* _entRueda01 = mSceneMgr->createEntity("entRueda01", "ruedaDetallada.mesh");
-		_nodeRueda01->translate(-5.77,3.517,-9.462);
-		_entRueda01->setMaterialName("shRueda02");
-		_nodeRueda01->attachObject(_entRueda01);
 
 		//Chasis
 		_nodeChasis01 = mSceneMgr->createSceneNode("Chasis01");
@@ -309,6 +403,52 @@ public:
 		_entChasis01->setMaterialName("shCarro01");
 		_nodeChasis01->attachObject(_entChasis01);
 
+		//Rotators
+		rotatorRueda01 = mSceneMgr->createSceneNode("rotatorRueda01");
+		rotatorRueda02 = mSceneMgr->createSceneNode("rotatorRueda02");
+		_nodeChasis01->addChild(rotatorRueda01);
+		_nodeChasis01->addChild(rotatorRueda02);
+		rotatorRueda01->translate(-5.77,3.517,9.462);
+		rotatorRueda02->translate(7.95,3.517,9.462);
+
+		//Rueda 1
+		nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
+		_nodeChasis01->addChild(nodeRueda01);
+			
+		Ogre::Entity* _entRueda01 = mSceneMgr->createEntity("entRueda01", "ruedaDetallada.mesh");
+		nodeRueda01->translate(7.95,3.517,-9.462);
+		_entRueda01->setMaterialName("shRueda02");
+		nodeRueda01->attachObject(_entRueda01);
+
+		//Rueda 2
+
+		nodeRueda02 = mSceneMgr->createSceneNode("Rueda02");
+		_nodeChasis01->addChild(nodeRueda02);
+			
+		Ogre::Entity* _entRueda02 = mSceneMgr->createEntity("entRueda02", "ruedaDetallada.mesh");
+		nodeRueda02->translate(-5.77,3.517,-9.462);
+		_entRueda02->setMaterialName("shRueda02");
+		nodeRueda02->attachObject(_entRueda02);
+
+		//Rueda 3
+
+		nodeRueda03 = mSceneMgr->createSceneNode("Rueda03");
+		rotatorRueda01->addChild(nodeRueda03);
+			
+		Ogre::Entity* _entRueda03 = mSceneMgr->createEntity("entRueda03", "ruedaDetallada.mesh");
+		//nodeRueda03->translate(-5.77,3.517,9.462);
+		_entRueda03->setMaterialName("shRueda02");
+		nodeRueda03->attachObject(_entRueda03);
+
+		//Rueda 4
+
+		nodeRueda04 = mSceneMgr->createSceneNode("Rueda04");
+		rotatorRueda02->addChild(nodeRueda04);
+			
+		Ogre::Entity* _entRueda04 = mSceneMgr->createEntity("entRueda04", "ruedaDetallada.mesh");
+		//nodeRueda04->translate(7.95,3.517,9.462);
+		_entRueda04->setMaterialName("shRueda02");
+		nodeRueda04->attachObject(_entRueda04);
 		
 
 		//BordePista
