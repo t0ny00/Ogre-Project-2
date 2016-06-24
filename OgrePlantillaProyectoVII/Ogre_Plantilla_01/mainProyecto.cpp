@@ -2,13 +2,14 @@
 
 #define coinNumber 30
 
-float r1;
-
-float r2;
+float radiusCar = 12.5;
+float radiusCoin = 0.5;
+float radiusObstacles = 0.7;
+bool isColliding = false;
 
 // car 12.5
 // coin 0.5
-//obs 0.5
+//obs 0.7
 
 Ogre::SceneNode* _nodeChasis01;
 Ogre::SceneNode* nodeObst1[7];
@@ -45,11 +46,11 @@ void moveObstacle(Ogre::SceneNode *nodeObst, float speed, int &dir){
 
 }
 
-void bSphereTest(Ogre::SceneNode *nodeObst ){
-	Ogre::Vector3 relPos = _nodeChasis01->getPosition() - nodeObst->getPosition();;
+bool collision(Ogre::SceneNode *nodeCar, Ogre::SceneNode *nodeObj, float radius1, float radius2 ){
+	Ogre::Vector3 relPos = nodeCar->getPosition() - nodeObj->getPosition();;
 	float dist = relPos.x * relPos.x + relPos.y * relPos.y + relPos.z * relPos.z;
-	float minDist = r1 + r2;
-	if (dist <= minDist * minDist){printf("\n\n Contacto  %f   %f",r1,r2);}
+	float minDist = radius1 + radius2;
+	return dist <= minDist * minDist;
 }
 
 class FrameListenerClase : public Ogre::FrameListener{
@@ -117,7 +118,7 @@ public:
 		if(_key->isKeyDown(OIS::KC_D))
 			tcam += Ogre::Vector3(cam_speed,0,0);
 
-		if(_key->isKeyDown(OIS::KC_V))
+		/*if(_key->isKeyDown(OIS::KC_V))
 			r1 += 0.5;
 
 		if(_key->isKeyDown(OIS::KC_B))
@@ -127,7 +128,7 @@ public:
 			r2 += 0.5;
 
 		if(_key->isKeyDown(OIS::KC_M))
-			r2 -= 0.5;
+			r2 -= 0.5;*/
 
 		if(_key->isKeyDown(OIS::KC_C))
 			system("cls");
@@ -135,16 +136,16 @@ public:
 		//Car test
 		Vector3 mov(0,0,0);
 		if(_key->isKeyDown(OIS::KC_I))
-			mov += Ogre::Vector3(0,0,50);
+			mov += Ogre::Vector3(0,0,100);
 		
 		if(_key->isKeyDown(OIS::KC_J))
-			mov += Ogre::Vector3(50,0,0);
+			mov += Ogre::Vector3(100,0,0);
 
 		if(_key->isKeyDown(OIS::KC_K))
-			mov += Ogre::Vector3(0,0,-50);
+			mov += Ogre::Vector3(0,0,-100);
 		
 		if(_key->isKeyDown(OIS::KC_L))
-			mov += Ogre::Vector3(-50,0,0);
+			mov += Ogre::Vector3(-100,0,0);
 		
 
 		_nodeChasis01->translate(mov*evt.timeSinceLastFrame);
@@ -161,15 +162,29 @@ public:
 		
 		for (int i = 0; i < (sizeof(nodeObst1) / sizeof(nodeObst1[0])); i++){
 			rotateObstacle(nodeObst1[i],4 * evt.timeSinceLastFrame);
+			if (collision(_nodeChasis01,nodeObst1[i],radiusCar,radiusObstacles) && !isColliding){
+				isColliding = true;
+				//Do collision stuff
+			}
+			else isColliding = false;
 		};
 
 		for (int i = 0; i < (sizeof(nodeObst2) / sizeof(nodeObst2[0])); i++){
 			rotateObstacle(nodeObst2[i],4 * evt.timeSinceLastFrame);
 			moveObstacle(nodeObst2[i], movingObstSpeed[i]  * evt.timeSinceLastFrame, movingObstDir[i]);
+			if (collision(_nodeChasis01,nodeObst2[i],radiusCar,radiusObstacles) && !isColliding){
+				isColliding = true;
+				//Do collision stuff
+			}
+			else isColliding = false;
 		};
-
 		for (int i = 0; i < (sizeof(nodeObst3) / sizeof(nodeObst3[0])); i++){
 			rotateObstacle(nodeObst3[i],4 * evt.timeSinceLastFrame);
+			if (collision(_nodeChasis01,nodeObst3[i],radiusCar,radiusObstacles) && !isColliding){
+				isColliding = true;
+				//Do collision stuff
+			}
+			else isColliding = false;
 		};
 
 		for (int i = 0; i < (sizeof(nodeRock01) / sizeof(nodeRock01[0])); i++){
@@ -177,9 +192,22 @@ public:
 			rotateRock(nodeRock02[i],17 * evt.timeSinceLastFrame);
 			rotateRock(nodeRock03[i],19 * evt.timeSinceLastFrame);
 			rotateRock(nodeRock04[i],32 * evt.timeSinceLastFrame);
+			if ((collision(_nodeChasis01,nodeRock01[i],radiusCar,radiusObstacles) ||
+				collision(_nodeChasis01,nodeRock02[i],radiusCar,radiusObstacles)  ||
+				collision(_nodeChasis01,nodeRock03[i],radiusCar,radiusObstacles)  ||
+				collision(_nodeChasis01,nodeRock04[i],radiusCar,radiusObstacles)) && !isColliding){
+				isColliding = true;
+				//Do collision stuff
+			}
+			else isColliding = false;
 		};
 
-		bSphereTest(nodeObst1[0]);
+		for (int i = 0; i < (sizeof(nodeCoin) / sizeof(nodeCoin[0])); i++){
+			if (collision(_nodeChasis01,nodeCoin[i],radiusCar,radiusCoin)) {
+				//Do coin collision stuff
+			}
+		};
+
 		return true;
 	}
 
@@ -210,8 +238,8 @@ public:
 	void createScene()
 	{
 
-		r1 = 0;
-		r2 = 0;
+		radiusCar = 12.5;
+		
 
 		mSceneMgr->setAmbientLight(Ogre::ColourValue(1.0, 1.0, 1.0));
 		mSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_ADDITIVE);
@@ -228,6 +256,41 @@ public:
 		LuzPuntual02->setDirection(Ogre::Vector3( -1, -1, -1 ));
 		LuzPuntual01->setCastShadows(false);
 		LuzPuntual02->setCastShadows(false);
+
+		Ogre::SceneNode* test = mSceneMgr->getRootSceneNode()->createChildSceneNode("test");
+		Ogre::ParticleSystem* partSystem = mSceneMgr->createParticleSystem("Smoke","PurpleFountain");
+		test->attachObject(partSystem);
+
+		///*Ogre::Entity* entEsferaLuz01 = mSceneMgr->createEntity("EsferaLuz01","sphere.mesh");
+		//Ogre::SceneNode* nodeEsfera01 = mSceneMgr->createSceneNode("nodeEsferaLuz01");
+		//mSceneMgr->getRootSceneNode()->addChild(nodeEsfera01);
+		//nodeEsfera01->attachObject(entEsferaLuz01);
+		//Ogre::SceneNode* nodeLuzP01 = mSceneMgr->createSceneNode("nodeLuzPoint01");*/
+
+		//Ogre::Light* LuzPuntual03 = mSceneMgr->createLight("Luz03");
+		//LuzPuntual03->setType(Ogre::Light::LT_POINT);
+		//LuzPuntual03->setPosition(0,25,5000);
+		//LuzPuntual03->setDiffuseColour(1.0, 0, 0.0);      //color the light orange 
+		//LuzPuntual03->setSpecularColour(1.0, 0.0, 0.0);    //yellow highlights
+		//LuzPuntual03->setAttenuation(600, 0.0, 0.001, 0.0001);
+		//LuzPuntual03->setCastShadows(false);
+
+		///*nodeLuzP01->attachObject(LuzPuntual03);
+		//nodeEsfera01->addChild(nodeLuzP01);
+		//nodeEsfera01->setScale(0.05,0.05,0.05);
+		//nodeEsfera01->setPosition(0,25,3000);*/
+
+		//Ogre::Light* LuzPuntual04 = mSceneMgr->createLight("Luz04");
+		//LuzPuntual04->setType(Ogre::Light::LT_SPOTLIGHT);
+		//LuzPuntual04->setPosition(0,10,0);
+		//LuzPuntual04->setDiffuseColour(1, 1, 0);      //color the light orange 
+		//LuzPuntual04->setSpecularColour(1, 1, 0);    //yellow highlights
+		//LuzPuntual04->setDirection(Ogre::Vector3( 0, -1, 0 ));
+		//LuzPuntual04->setSpotlightInnerAngle(Ogre::Degree(5.f));
+		//LuzPuntual04->setSpotlightOuterAngle(Ogre::Degree(20.f));
+		//LuzPuntual04->setSpotlightFalloff(0.0f);
+		//LuzPuntual04->setCastShadows(false);
+		////LuzPuntual04->setAttenuation(600, 0.0, 0.001, 0.0001);
 
 		//Rueda
 		Ogre::SceneNode* _nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
@@ -709,6 +772,7 @@ public:
 			printf("Created Entity No. %i \n", i);
 		}
 
+		
 		////Animacion Torreta 4
 		//float duration2 = 4.0;
 		//Ogre::Animation* animationTurret401 = mSceneMgr->createAnimation("AnimTurret401",duration2);
