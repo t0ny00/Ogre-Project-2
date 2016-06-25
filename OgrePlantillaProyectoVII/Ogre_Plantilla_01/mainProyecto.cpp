@@ -5,6 +5,7 @@
 float radiusCar = 12.5;
 float radiusCoin = 0.5;
 float radiusObstacles = 0.7;
+float radiusWall = 5;
 bool isColliding = false;
 
 // car 12.5
@@ -23,6 +24,13 @@ Ogre::SceneNode* nodeCoin[coinNumber];
 
 int movingObstDir[8];
 int movingObstSpeed[8];
+Vector3 wallLeftCoord[119];
+Vector3 wallRightCoord[119];
+Vector3 wallRightSecondCoord[119];
+Vector3 wallLeftSecondCoord[119];
+
+Ogre::SceneNode* nodeParticle;
+Ogre::ParticleSystem* partSystem;
 
 //Ogre::AnimationState* animationState;
 //Ogre::Animation* animationObstSpin[19];
@@ -53,6 +61,13 @@ bool collision(Ogre::SceneNode *nodeCar, Ogre::SceneNode *nodeObj, float radius1
 	return dist <= minDist * minDist;
 }
 
+bool collisionWall(Ogre::SceneNode *nodeCar, Vector3 sphere, float radius1, float radius2 ){
+	Ogre::Vector3 relPos = nodeCar->getPosition() - sphere;
+	float dist = relPos.x * relPos.x + relPos.y * relPos.y + relPos.z * relPos.z;
+	float minDist = radius1 + radius2;
+	return dist <= minDist * minDist;
+}
+
 class FrameListenerClase : public Ogre::FrameListener{
 
 private:
@@ -61,6 +76,7 @@ private:
 	OIS::Keyboard* _key;
 	OIS::Mouse* _mouse;
 	Ogre::Camera* _cam;
+	float time;
 
 public:
 	FrameListenerClase(Ogre::Camera* cam, RenderWindow* win){
@@ -80,9 +96,9 @@ public:
 		_mouse = static_cast<OIS::Mouse*>(_man->createInputObject(OIS::OISMouse,false));
 		_cam = cam;
 		
-		
+		time = 0;
 	}
-
+	
 
 	~FrameListenerClase(){
 		_man->destroyInputObject(_key);
@@ -134,18 +150,54 @@ public:
 			system("cls");
 
 		//Car test
+		bool hit = false;
 		Vector3 mov(0,0,0);
-		if(_key->isKeyDown(OIS::KC_I))
-			mov += Ogre::Vector3(0,0,100);
-		
-		if(_key->isKeyDown(OIS::KC_J))
-			mov += Ogre::Vector3(100,0,0);
 
-		if(_key->isKeyDown(OIS::KC_K))
-			mov += Ogre::Vector3(0,0,-100);
+		if(_key->isKeyDown(OIS::KC_I)){
+			for (int i = 0; i < (sizeof(wallLeftCoord) / sizeof(wallLeftCoord[0])); i++) // Loop through the entities
+			{
+				if(collisionWall(_nodeChasis01,wallLeftCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(_nodeChasis01,wallRightCoord[i],radiusCar,radiusWall)) hit = true;
+			}
+			if (!hit)mov += Ogre::Vector3(0,0,100);
+			hit = false;
+		}
+		if(_key->isKeyDown(OIS::KC_J)){
+			for (int i = 0; i < (sizeof(wallLeftCoord) / sizeof(wallLeftCoord[0])); i++) // Loop through the entities
+			{
+				if(collisionWall(_nodeChasis01,wallLeftCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(_nodeChasis01,wallLeftSecondCoord[i],radiusCar,radiusWall)) hit = true;
+			}
+			if (!hit) mov += Ogre::Vector3(100,0,0);
+			hit = false;
+		}
+			
+
+		if(_key->isKeyDown(OIS::KC_K)){
+			for (int i = 0; i < (sizeof(wallRightCoord) / sizeof(wallRightCoord[0])); i++) // Loop through the entities
+			{
+				if(collisionWall(_nodeChasis01,wallLeftSecondCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(_nodeChasis01,wallRightSecondCoord[i],radiusCar,radiusWall)) hit = true;
+
+			}
+			if (!hit) mov += Ogre::Vector3(0,0,-100);
+			hit = false;
+			
+			
+		}
+			
 		
-		if(_key->isKeyDown(OIS::KC_L))
-			mov += Ogre::Vector3(-100,0,0);
+		if(_key->isKeyDown(OIS::KC_L)){
+			for (int i = 0; i < (sizeof(wallRightCoord) / sizeof(wallRightCoord[0])); i++) // Loop through the entities
+			{
+				if(collisionWall(_nodeChasis01,wallRightCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(_nodeChasis01,wallRightSecondCoord[i],radiusCar,radiusWall)) hit = true;
+
+			}
+			if (!hit) mov += Ogre::Vector3(-100,0,0);
+			hit = false;
+		}
+			
 		
 
 		_nodeChasis01->translate(mov*evt.timeSinceLastFrame);
@@ -204,9 +256,15 @@ public:
 
 		for (int i = 0; i < (sizeof(nodeCoin) / sizeof(nodeCoin[0])); i++){
 			if (collision(_nodeChasis01,nodeCoin[i],radiusCar,radiusCoin)) {
-				//Do coin collision stuff
+				nodeParticle->setPosition(nodeCoin[i]->getPosition());
+				partSystem->setEmitting(true);
+				nodeCoin[i]->setVisible(false);
+				time = 0;
 			}
 		};
+
+		time += evt.timeSinceLastFrame;
+		if (time > 0.5) partSystem->setEmitting(false);
 
 		return true;
 	}
@@ -257,9 +315,7 @@ public:
 		LuzPuntual01->setCastShadows(false);
 		LuzPuntual02->setCastShadows(false);
 
-		Ogre::SceneNode* test = mSceneMgr->getRootSceneNode()->createChildSceneNode("test");
-		Ogre::ParticleSystem* partSystem = mSceneMgr->createParticleSystem("Smoke","PurpleFountain");
-		test->attachObject(partSystem);
+		
 
 		///*Ogre::Entity* entEsferaLuz01 = mSceneMgr->createEntity("EsferaLuz01","sphere.mesh");
 		//Ogre::SceneNode* nodeEsfera01 = mSceneMgr->createSceneNode("nodeEsferaLuz01");
@@ -292,6 +348,40 @@ public:
 		//LuzPuntual04->setCastShadows(false);
 		////LuzPuntual04->setAttenuation(600, 0.0, 0.001, 0.0001);
 
+		// Particula
+		nodeParticle = mSceneMgr->getRootSceneNode()->createChildSceneNode("test");
+		partSystem = mSceneMgr->createParticleSystem("Smoke","PurpleFountain");
+		nodeParticle->attachObject(partSystem);
+		partSystem->setEmitting(false);
+
+		// Colision pared
+		for (int i = 0; i < (sizeof(wallLeftCoord) / sizeof(wallLeftCoord[0])); i++) // Loop through the entities
+		{
+			wallLeftCoord[i].x = 200 - i * radiusWall/4;
+			wallLeftCoord[i].y = 5;
+			wallLeftCoord[i].z = 2350 + i * radiusWall;
+		}
+
+		for (int i = 0; i < (sizeof(wallRightCoord) / sizeof(wallRightCoord[0])); i++) // Loop through the entities
+		{
+			wallRightCoord[i].x = -200 + i * radiusWall/4;
+			wallRightCoord[i].y = 5;
+			wallRightCoord[i].z = 2350 + i * radiusWall;
+		}
+		for (int i = 0; i < (sizeof(wallRightSecondCoord) / sizeof(wallRightSecondCoord[0])); i++) // Loop through the entities
+		{
+			wallRightSecondCoord[i].x = -56 - i * radiusWall/3.5;
+			wallRightSecondCoord[i].y = 5;
+			wallRightSecondCoord[i].z = 4940 + i * radiusWall;
+		}
+		for (int i = 0; i < (sizeof(wallLeftSecondCoord) / sizeof(wallLeftSecondCoord[0])); i++) // Loop through the entities
+		{
+			wallLeftSecondCoord[i].x = 56 + i * radiusWall/3.5;
+			wallLeftSecondCoord[i].y = 5;
+			wallLeftSecondCoord[i].z = 4940 + i * radiusWall;
+		}
+
+
 		//Rueda
 		Ogre::SceneNode* _nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
 		mSceneMgr->getRootSceneNode()->addChild(_nodeRueda01);
@@ -308,7 +398,6 @@ public:
 		Ogre::Entity* _entChasis01 = mSceneMgr->createEntity("entChasis01", "chasisCarro.mesh");
 		_entChasis01->setMaterialName("shCarro01");
 		_nodeChasis01->attachObject(_entChasis01);
-
 		
 
 		//BordePista
