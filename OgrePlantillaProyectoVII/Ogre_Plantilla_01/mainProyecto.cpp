@@ -406,7 +406,7 @@ public:
 				
 		Ogre::Entity* _entBPista = mSceneMgr->createEntity("BordePista01", "bordePista.mesh");
 		_nodeBPista->attachObject(_entBPista);
-
+		_entBPista->setMaterialName("pared");
 
 		//PisoObstaculo
 		Ogre::SceneNode* _nodePObstaculo = mSceneMgr->createSceneNode("PistaObstaculo");
@@ -414,6 +414,7 @@ public:
 				
 		Ogre::Entity* _entPObstaculo = mSceneMgr->createEntity("PistaObstaculo", "pisoObstaculo01.mesh");
 		_nodePObstaculo->attachObject(_entPObstaculo);
+		_entPObstaculo->setMaterialName("sueloObs");
 
 		//PisoNOObstaculo
 		Ogre::SceneNode* _nodePNObstaculo = mSceneMgr->createSceneNode("PistaNoObstaculo");
@@ -421,7 +422,7 @@ public:
 				
 		Ogre::Entity* _entPNOObstaculo = mSceneMgr->createEntity("PistaNoObstaculo", "pisoNoObstaculo01.mesh");
 		_nodePNObstaculo->attachObject(_entPNOObstaculo);
-
+		_entPNOObstaculo->setMaterialName("suelo");
 
 		//PosterInicioFinal
 		Ogre::SceneNode* _nodePoster = mSceneMgr->createSceneNode("PosterInicioFinal");
@@ -429,7 +430,7 @@ public:
 			
 		Ogre::Entity* _entPoster = mSceneMgr->createEntity("PosterInicioFinal", "posterInicioFinal.mesh");
 		_nodePoster->attachObject(_entPoster);
-
+		_entPoster->setMaterialName("LightBlue2");
 				
 		//BanderaInicial
 		Ogre::SceneNode* _nodeBInicial = mSceneMgr->createSceneNode("BanderaInicial");
@@ -445,7 +446,7 @@ public:
 		mSceneMgr->getRootSceneNode()->addChild(_nodeBFinal);
 		
 		Ogre::Entity* _entBanderaF = mSceneMgr->createEntity("BanderaFinal", "banderaFinal.mesh");
-		_entBanderaF->setMaterialName("lambert1");
+		_entBanderaF->setMaterialName("final");
 		_nodeBFinal->attachObject(_entBanderaF);
 
 
@@ -506,7 +507,7 @@ public:
 		mSceneMgr->getRootSceneNode()->addChild(nodeDecor01);
 
 		Ogre::Entity *subEntityDecor101 = mSceneMgr->createEntity("subEntityDecor101", "usb_dodecaedro.mesh");
-		subEntityDecor101->setMaterialName("Grey");
+		subEntityDecor101->setMaterialName("Grey2");
 		Ogre::SceneNode *subNodeDecor101 = mSceneMgr->createSceneNode();
 		subNodeDecor101->attachObject(subEntityDecor101);
 		subNodeDecor101->setPosition(0,-5,0);
@@ -515,7 +516,7 @@ public:
 	  
 
 		Ogre::Entity *subEntityDecor102 = mSceneMgr->createEntity("subEntityDecor102", "usb_torus.mesh");
-		subEntityDecor102->setMaterialName("DarkBlue");
+		subEntityDecor102->setMaterialName("DarkBlue2");
 		Ogre::SceneNode *subNodeDecor102 = mSceneMgr->createSceneNode();
 		subNodeDecor102->attachObject(subEntityDecor102);
 		subNodeDecor102->setPosition(0,20,0);
@@ -523,14 +524,14 @@ public:
 		subNodeDecor102->pitch(Ogre::Degree(90));
 
 		Ogre::Entity *subEntityDecor103 = mSceneMgr->createEntity("subEntityDecor103", "sphere.mesh");
-		subEntityDecor103->setMaterialName("LightBlue");
+		subEntityDecor103->setMaterialName("LightBlue2");
 		Ogre::SceneNode *subNodeDecor103 = mSceneMgr->createSceneNode();
 		subNodeDecor103->attachObject(subEntityDecor103);
 		subNodeDecor103->setPosition(0,20,0);
 		subNodeDecor103->setScale(0.06,0.06,0.06);
 
 		Ogre::Entity *subEntityDecor104 = mSceneMgr->createEntity("subEntityDecor104", "usb_cubomod01.mesh");
-		subEntityDecor104->setMaterialName("DarkGrey");
+		subEntityDecor104->setMaterialName("DarkGrey2");
 		Ogre::SceneNode *subNodeDecor104 = mSceneMgr->createSceneNode();
 		subNodeDecor104->attachObject(subEntityDecor104);
 		subNodeDecor104->setPosition(0,-10,0);
@@ -550,7 +551,7 @@ public:
 		mSceneMgr->getRootSceneNode()->addChild(nodeDecor02);
 
 		Ogre::Entity *subEntityDecor201 = mSceneMgr->createEntity("subEntityDecor201", "usb_dodecaedro.mesh");
-		subEntityDecor201->setMaterialName("Grey");
+		subEntityDecor201->setMaterialName("Grey2");
 		Ogre::SceneNode *subNodeDecor201 = mSceneMgr->createSceneNode();
 		subNodeDecor201->attachObject(subEntityDecor201);
 		subNodeDecor201->setPosition(0,-5,0);
@@ -559,7 +560,7 @@ public:
 	  
 		
 		Ogre::Entity *subEntityDecor202 = mSceneMgr->createEntity("subEntityDecor202", "usb_torus.mesh");
-		subEntityDecor202->setMaterialName("DarkBlue");
+		subEntityDecor202->setMaterialName("DarkBlue2");
 		Ogre::SceneNode *subNodeDecor202 = mSceneMgr->createSceneNode();
 		subNodeDecor202->attachObject(subEntityDecor202);
 		subNodeDecor202->setPosition(0,20,0);
@@ -567,14 +568,14 @@ public:
 		subNodeDecor202->pitch(Ogre::Degree(90));
 
 		Ogre::Entity *subEntityDecor203 = mSceneMgr->createEntity("subEntityDecor203", "sphere.mesh");
-		subEntityDecor203->setMaterialName("LightBlue");
+		subEntityDecor203->setMaterialName("LightBlue2");
 		Ogre::SceneNode *subNodeDecor203 = mSceneMgr->createSceneNode();
 		subNodeDecor203->attachObject(subEntityDecor203);
 		subNodeDecor203->setPosition(0,20,0);
 		subNodeDecor203->setScale(0.06,0.06,0.06);
 
 		Ogre::Entity *subEntityDecor204 = mSceneMgr->createEntity("subEntityDecor204", "usb_cubomod01.mesh");
-		subEntityDecor204->setMaterialName("DarkGrey");
+		subEntityDecor204->setMaterialName("DarkGrey2");
 		Ogre::SceneNode *subNodeDecor204 = mSceneMgr->createSceneNode();
 		subNodeDecor204->attachObject(subEntityDecor204);
 		subNodeDecor204->setPosition(0,-10,0);
@@ -671,7 +672,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityObst1[i] = mSceneMgr->createEntity("Obst1 " + number, "spine.mesh");
-			entityObst1[i]->setMaterialName("lambert1");
+			entityObst1[i]->setMaterialName("Brown2");
 			nodeObst1[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeObst1 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
@@ -703,7 +704,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityObst2[i] = mSceneMgr->createEntity("Obst2 " + number, "spine.mesh");
-			entityObst2[i]->setMaterialName("lambert1");
+			entityObst2[i]->setMaterialName("Brown2");
 			nodeObst2[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeObst2 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
@@ -728,7 +729,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityObst3[i] = mSceneMgr->createEntity("Obst3 " + number, "spine.mesh");
-			entityObst3[i]->setMaterialName("lambert1");
+			entityObst3[i]->setMaterialName("Brown2");
 			nodeObst3[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeObst3 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
@@ -765,7 +766,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityRock01[i] = mSceneMgr->createEntity("Rock01 " + number, "roca01.mesh");
-			entityRock01[i]->setMaterialName("lambert1");
+			entityRock01[i]->setMaterialName("matRoca01");
 			nodeRock01[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock01 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
@@ -792,7 +793,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityRock02[i] = mSceneMgr->createEntity("Rock02 " + number, "roca02.mesh");
-			entityRock02[i]->setMaterialName("lambert1");
+			entityRock02[i]->setMaterialName("matRoca02");
 			nodeRock02[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock02 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
@@ -819,7 +820,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityRock03[i] = mSceneMgr->createEntity("Rock03 " + number, "roca03.mesh");
-			entityRock03[i]->setMaterialName("lambert1");
+			entityRock03[i]->setMaterialName("matRoca03");
 			nodeRock03[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock03 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
@@ -846,7 +847,7 @@ public:
  
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityRock04[i] = mSceneMgr->createEntity("Rock04 " + number, "roca04.mesh");
-			entityRock04[i]->setMaterialName("lambert1");
+			entityRock04[i]->setMaterialName("matRoca04");
 			nodeRock04[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeRock04 " + number);
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them

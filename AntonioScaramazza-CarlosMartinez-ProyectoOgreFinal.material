@@ -9,7 +9,7 @@ material StarSky
 
 			texture_unit
 			{
-				texture stars.png
+				texture AntonioScaramazza-CarlosMartinez-Texturas/stars.png
 				scroll_anim 0.05 0
 			}
 		}
@@ -45,7 +45,7 @@ material Cannon
    }
 }
 
-material Grey
+material Grey2
 {
    technique
    {
@@ -53,43 +53,55 @@ material Grey
       {
          lighting on
  
-         ambient 0.580 0.580 0.580 1
-         diffuse 0 0 0 1
+         ambient 0 0 0 1
+         diffuse 0.580 0.580 0.580 1
          emissive 0 0 0 1
       }
    }
 }
-material DarkGrey
+material DarkGrey2
 {
    technique
    {
       pass
       {
-         lighting on
- 
-         ambient 0.25 0.25 0.25 1
-         diffuse 0 0 0 1
+
+         ambient 0 0 0 1
+         diffuse 0.25 0.25 0.25 1
          emissive 0 0 0 1
       }
    }
 }
 
-material LightBlue
+material Brown2
 {
    technique
    {
       pass
       {
-         lighting on
- 
-         ambient 0.027 0.854 0.815 1
-         diffuse 0 0 0 1
-         emissive 0 0 0 1
+
+         ambient 0 0 0 1
+         diffuse 0.596 0.494 0.262 1
+         emissive 0 0 0 5
       }
    }
 }
 
-material DarkBlue
+material LightBlue2
+{
+   technique
+   {
+      pass
+      {
+
+         ambient 0 0 0 1
+         diffuse 0.027 0.854 0.815 1
+         emissive 0 0 0 5
+      }
+   }
+}
+
+material DarkBlue2
 {
    technique
    {
@@ -97,8 +109,8 @@ material DarkBlue
       {
          lighting on
  
-         ambient 0.011 0.101 0.466 1
-         diffuse 0 0 0 1
+         ambient 0 0 0 1
+         diffuse 0.011 0.101 0.466 1
          emissive 0 0 0 1
       }
    }
@@ -161,4 +173,175 @@ particle_system PurpleFountain
 
 	
 	
+}
+
+material matRoca01
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/.jpg
+				scale 0.2 0.2
+			}
+		}
+	}
+
+}
+
+material matRoca02
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/meteor01.jpg
+				scale 0.08 0.08
+			}
+		}
+	}
+
+}
+
+material matRoca03
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/meteor02.jpg
+				scale 0.09 0.09
+			}
+		}
+	}
+
+}
+
+material matRoca04
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/meteor03.jpg
+				scale 0.3 0.3
+			}
+		}
+	}
+
+}
+
+material sueloObs
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/floorObs.jpg
+				scale 0.15 0.15
+			}
+		}
+	}
+
+}
+
+material suelo
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/floorNoObs.jpg
+				scale 0.05 0.05
+				rotate 90 
+			}
+		}
+	}
+
+}
+
+material pared
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/wall.jpg
+				scale 0.05 0.05
+				rotate 90
+			}
+		}
+	}
+
+}
+
+material final
+{
+	technique
+	{
+		pass
+		{
+			lighting on
+			ambient 0.1 0.1 0.1 1
+			diffuse 1.0 1.0 1.0 1
+			emissive 0 0 0 1
+
+			texture_unit
+			{
+				texture AntonioScaramazza-CarlosMartinez-Texturas/checker.png
+				scale 0.5 0.5
+				 
+			}
+		}
+	}
+
 }
