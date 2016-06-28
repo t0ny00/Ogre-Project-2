@@ -15,9 +15,6 @@ int score = 0;
 int coinsCollected[coinNumber];
 bool finished = true;
 
-// car 12.5
-// coin 0.5
-//obs 0.7
 
 Ogre::AnimationState* animationStateExpRightWing;
 Ogre::AnimationState* animationStateExpLeftWing;
@@ -89,8 +86,6 @@ bool rolledRight = false;
 
 bool spaceship_mode = false;
 
-//Ogre::AnimationState* animationState;
-//Ogre::Animation* animationObstSpin[19];
 
 void rotateObstacle(Ogre::SceneNode *nodeObst, float delta){
 	nodeObst->yaw(Ogre::Radian(nodeObst->getOrientation().x + delta));
@@ -195,13 +190,8 @@ public:
 		float movSpeed=10.0f;
 		Ogre::Vector3 tmov(0,0,0);
 		Ogre::Vector3 tcam(0,0,0);
-
-		//-50, 390, con x 122
-		//391, 2320, con x 204
-		//2940, 4930, con x -32 a 26
-		//5505, 6530, con x 204
 		float xLimit1;
-		float xLimit2;
+
 		if (nodePlayer->getPosition().z > -50 && nodePlayer->getPosition().z < 390 ) xLimit1 = 122;
 		else if (nodePlayer->getPosition().z > 390 && nodePlayer->getPosition().z < 2320 ) xLimit1 = 204;
 		else if (nodePlayer->getPosition().z > 2940 && nodePlayer->getPosition().z < 4930 ) xLimit1 = 32;
@@ -377,12 +367,8 @@ public:
 		//camara control
 		float rotX = _mouse->getMouseState().X.rel * evt.timeSinceLastFrame*-1;
 		float rotY = _mouse->getMouseState().Y.rel * evt.timeSinceLastFrame*-1;
-		/*_cam->yaw(Ogre::Radian(rotX));
-		_cam->pitch(Ogre::Radian(rotY));*/
-		/*_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);*/
 		if (spaceship_mode) nodePlayer->pitch(Ogre::Radian(rotY));
 		if (spaceship_mode) nodeCam->pitch(-Ogre::Radian(rotY));
-		//animationState->addTime(evt.timeSinceLastFrame);
 
 		
 
@@ -391,7 +377,6 @@ public:
 			rotateObstacle(nodeObst1[i],4 * evt.timeSinceLastFrame);
 			if (collision(nodePlayer,nodeObst1[i],radiusCar,radiusObstacles) && !isColliding){
 				isColliding = true;
-				//Do collision stuff
 				inertia_speed += 0.2;
 				bounce_back_time = 0.3;
 				colliding = -1;
@@ -404,7 +389,6 @@ public:
 			moveObstacle(nodeObst2[i], movingObstSpeed[i]  * evt.timeSinceLastFrame, movingObstDir[i]);
 			if (collision(nodePlayer,nodeObst2[i],radiusCar,radiusObstacles) && !isColliding){
 				isColliding = true;
-				//Do collision stuff
 				inertia_speed += 0.2;
 				bounce_back_time = 0.3;
 				colliding = -1;
@@ -415,7 +399,6 @@ public:
 			rotateObstacle(nodeObst3[i],4 * evt.timeSinceLastFrame);
 			if (collision(nodePlayer,nodeObst3[i],radiusCar,radiusObstacles) && !isColliding){
 				isColliding = true;
-				//Do collision stuff
 				inertia_speed += 0.2;
 				bounce_back_time = 0.3;
 				colliding = -1;
@@ -564,7 +547,7 @@ public:
 		if (animationStateRollWheel4->getEnabled()) animationStateRollWheel4->addTime(evt.timeSinceLastFrame);
 		if (animationStateTurbine->getEnabled()) animationStateTurbine->addTime(evt.timeSinceLastFrame);
 
-		printf("\nX is %f\nY is %f\nZ is %f\n",nodePlayer->getPosition().x,nodePlayer->getPosition().y,nodePlayer->getPosition().z);
+
 
 		return true;
 	}
@@ -659,15 +642,14 @@ public:
  
 		// Create a panel
 		OverlayContainer* panel = static_cast<OverlayContainer*>(
-			overlayManager.createOverlayElement("Panel", "PanelName"));
+		overlayManager.createOverlayElement("Panel", "PanelName"));
 		panel->setMetricsMode(Ogre::GMM_PIXELS);
 		panel->setPosition(10, 10);
 		panel->setDimensions(100, 100);
-		//panel->setMaterialName("MaterialName"); // Optional background material
  
 		// Create a text area
 		scoreText = static_cast<TextAreaOverlayElement*>(
-			overlayManager.createOverlayElement("TextArea", "TextAreaName"));
+		overlayManager.createOverlayElement("TextArea", "TextAreaName"));
 		scoreText->setMetricsMode(Ogre::GMM_PIXELS);
 		scoreText->setPosition(0, 0);
 		scoreText->setDimensions(100, 100);
@@ -703,51 +685,6 @@ public:
 		LuzPuntual01->setCastShadows(false);
 		LuzPuntual02->setCastShadows(false);
 
-		
-
-		/*Ogre::Entity* entEsferaLuz01 = mSceneMgr->createEntity("EsferaLuz01","sphere.mesh");
-		Ogre::SceneNode* nodeEsfera01 = mSceneMgr->createSceneNode("nodeEsferaLuz01");
-		mSceneMgr->getRootSceneNode()->addChild(nodeEsfera01);
-		nodeEsfera01->attachObject(entEsferaLuz01);
-		Ogre::SceneNode* nodeLuzP01 = mSceneMgr->createSceneNode("nodeLuzPoint01");*/
-
-		//Ogre::Light* LuzPuntual03 = mSceneMgr->createLight("Luz03");
-		//LuzPuntual03->setType(Ogre::Light::LT_POINT);
-		//LuzPuntual03->setPosition(0,25,0);
-		//LuzPuntual03->setDiffuseColour(1.0, 1.0, 1.0);      //color the light orange 
-		//LuzPuntual03->setAttenuation(3250, 1.0, 0.0014, 0.000007);
-		//LuzPuntual03->setCastShadows(false);
-
-		//Ogre::Light* LuzPuntual04 = mSceneMgr->createLight("Luz04");
-		//LuzPuntual04->setType(Ogre::Light::LT_POINT);
-		//LuzPuntual04->setPosition(0,25,3100);
-		//LuzPuntual04->setDiffuseColour(1.0, 1.0, 1.0);      //color the light orange 
-		//LuzPuntual04->setAttenuation( 500, 1.0f, 4.5/500, 75.0f/(500*500) );
-		//LuzPuntual04->setCastShadows(false);
-
-		//Ogre::Light* LuzPuntual05 = mSceneMgr->createLight("Luz05");
-		//LuzPuntual05->setType(Ogre::Light::LT_POINT);
-		//LuzPuntual05->setPosition(0,25,4500);
-		//LuzPuntual05->setDiffuseColour(1.0, 1.0, 1.0);      //color the light orange 
-		//LuzPuntual05->setAttenuation(500, 1.0f, 2.5/500, 50.0f/(500*500));
-		//LuzPuntual05->setCastShadows(false);
-
-		/*nodeLuzP01->attachObject(LuzPuntual03);
-		nodeEsfera01->addChild(nodeLuzP01);
-		nodeEsfera01->setScale(0.05,0.05,0.05);
-		nodeEsfera01->setPosition(0,25,3000);*/
-		
-		//Ogre::Light* LuzPuntual04 = mSceneMgr->createLight("Luz04");
-		//LuzPuntual04->setType(Ogre::Light::LT_SPOTLIGHT);
-		//LuzPuntual04->setPosition(0,10,0);
-		//LuzPuntual04->setDiffuseColour(1, 1, 0);      //color the light orange 
-		//LuzPuntual04->setSpecularColour(1, 1, 0);    //yellow highlights
-		//LuzPuntual04->setDirection(Ogre::Vector3( 0, -1, 0 ));
-		//LuzPuntual04->setSpotlightInnerAngle(Ogre::Degree(10.f));
-		//LuzPuntual04->setSpotlightOuterAngle(Ogre::Degree(40.f));
-		//LuzPuntual04->setSpotlightFalloff(1.0f);
-		//LuzPuntual04->setCastShadows(false);
-		////LuzPuntual04->setAttenuation(600, 0.0, 0.001, 0.0001);
 
 
 		// Particula
@@ -823,7 +760,6 @@ public:
 		wing1->attachObject(wing1object);
 		wing1->setScale(0.0,3.0,2.0);
 		wing1->translate(0.0,4.0,0.0);
-		//wing1->setInitialState();
 
 		wing2 = mSceneMgr->createSceneNode("wing2");
 		_nodeChasis01->addChild(wing2);
@@ -833,7 +769,6 @@ public:
 		wing2->attachObject(wing2object);
 		wing2->setScale(0.0,3.0,2.0);
 		wing2->translate(0.0,4.0,0.0);
-		//wing2->setInitialState();
 
 		//Rotators
 		rotatorRueda01 = mSceneMgr->createSceneNode("rotatorRueda01");
@@ -878,7 +813,6 @@ public:
 		rotatorRueda01->addChild(nodeRueda03);
 			
 		Ogre::Entity* _entRueda03 = mSceneMgr->createEntity("entRueda03", "ruedaDetallada.mesh");
-		//nodeRueda03->translate(-5.77,3.517,9.462);
 		_entRueda03->setMaterialName("shRueda02");
 		nodeRueda03->attachObject(_entRueda03);
 
@@ -886,14 +820,11 @@ public:
 
 		nodeRueda04 = mSceneMgr->createSceneNode("Rueda04");
 		rotatorRueda02->addChild(nodeRueda04);
-		//nodeRueda04->yaw(Radian(180));
 			
 		Ogre::Entity* _entRueda04 = mSceneMgr->createEntity("entRueda04", "ruedaDetallada.mesh");
-		//nodeRueda04->translate(7.95,3.517,9.462);
 		_entRueda04->setMaterialName("shRueda02");
 		nodeRueda04->attachObject(_entRueda04);
 
-		/*extendido translate(0.0,6.0,-15.0) setScale(1.0,1.0,1.0)*/
 
 		//Spaceship transformation animation
 		float transform_anim_duration = 2.0;
@@ -1052,8 +983,8 @@ public:
 			nodeCoin[i]->setPosition(0 , 7, (i+2) * 300);
 			nodeCoin[i]->setScale(0.05,0.05,0.05);
 			nodeCoin[i]->attachObject(entityCoin[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		nodeCoin[2]->translate(65,0,0);
@@ -1195,8 +1126,7 @@ public:
 			nodeDecor3[i]->setPosition(temp*220 ,110, i * 250 + 500);
 			nodeDecor3[i]->setScale(0.5,0.5,0.5);
 			nodeDecor3[i]->attachObject(entityDecor3[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+
 
 			entityDecorBase3[i] = mSceneMgr->createEntity("DecorBase30 " + number, "cube.mesh");
 			entityDecorBase3[i]->setMaterialName("lambert1");
@@ -1206,12 +1136,6 @@ public:
 			nodeDecorBase3[i]->attachObject(entityDecorBase3[i]);
 		}
 
-		/*nodeDecor3[1]->setPosition(0,110,0);
-		Ogre::Entity *ent = mSceneMgr->createEntity("ent", "cube.mesh");
-		Ogre::SceneNode* nod = mSceneMgr->getRootSceneNode()->createChildSceneNode();
-		nod->attachObject(ent);
-		nod->scale(0.3,0.7,0.3);
-		nod->setPosition(10,35,0);*/
 
 		//Decor 4
 		Ogre::SceneNode* nodeDecor04 = mSceneMgr->createSceneNode("Decor04");
@@ -1257,8 +1181,7 @@ public:
 			nodeDecor6[i]->setPosition(temp*220 ,110, i * 100 + 5700);
 			nodeDecor6[i]->setScale(0.5,0.5,0.5);
 			nodeDecor6[i]->attachObject(entityDecor6[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+
 
 			entityDecorBase6[i] = mSceneMgr->createEntity("DecorBase60 " + number, "cube.mesh");
 			entityDecorBase6[i]->setMaterialName("lambert1");
@@ -1289,13 +1212,12 @@ public:
 			nodeObst1[i]->setPosition(0 , 0 , i * 50 + 500);
 			nodeObst1[i]->setScale(0.5,0.5,0.5);
 			nodeObst1[i]->attachObject(entityObst1[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		nodeObst1[1]->translate(-50,0,0);
 		nodeObst1[2]->translate(45,0,0);
-		//nodeObst1[3]->translate(0,0,0);
 		nodeObst1[4]->translate(-35,0,0);
 		nodeObst1[5]->translate(35,0,0);
 		nodeObst1[6]->translate(20,0,50);
@@ -1321,8 +1243,8 @@ public:
 			nodeObst2[i]->setPosition(0 , 0 , i * 125 + 1400);
 			nodeObst2[i]->setScale(0.5,0.5,0.5);
 			nodeObst2[i]->attachObject(entityObst2[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		//Obstacles 3
@@ -1342,17 +1264,15 @@ public:
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
-			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
 			nodeObst3[i]->setPosition(0 , 0 , i * 150 + 5600);
 			nodeObst3[i]->setScale(0.5,0.5,0.5);
 			nodeObst3[i]->attachObject(entityObst3[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		nodeObst3[1]->translate(-50,0,0);
 		nodeObst3[2]->translate(45,0,0);
-		//nodeObst3[3]->translate(0,0,0);
 		nodeObst3[4]->translate(-35,0,0);
 		nodeObst3[5]->translate(35,0,0);
 		
@@ -1379,14 +1299,10 @@ public:
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
-			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
 			nodeRock01[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 250 + 7000);
-			//nodeRock01[i]->setPosition(0,0 , i * 250 + 7000);
-
-			//nodeRock01[i]->setScale(0.5,0.5,0.5);
 			nodeRock01[i]->attachObject(entityRock01[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		//Rocks 02
@@ -1406,14 +1322,12 @@ public:
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
-			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
-			nodeRock02[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 350 + 6800);
-			//nodeRock02[i]->setPosition(0,0 , i * 350 + 6800);
 
-			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock02[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 350 + 6800);
+
 			nodeRock02[i]->attachObject(entityRock02[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		//Rocks 03
@@ -1433,14 +1347,12 @@ public:
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
-			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
-			nodeRock03[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 315 + 7500);
-			//nodeRock03[i]->setPosition(0,0 , i * 315 + 7500);
 
-			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock03[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 315 + 7500);
+
 			nodeRock03[i]->attachObject(entityRock03[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+
 		}
 
 		//Rocks 04
@@ -1460,52 +1372,14 @@ public:
  
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
-			//nodeObst3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
-			nodeRock04[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 375 + 7700);
-			//nodeRock04[i]->setPosition(0,0 , i * 375 + 7700);
 
-			//nodeRock01[i]->setScale(0.5,0.5,0.5);
+			nodeRock04[i]->setPosition(rand() % 250 - 150 , rand() % 250 - 150 , i * 375 + 7700);
+
 			nodeRock04[i]->attachObject(entityRock04[i]);
-			// Let us know how many entities we have on screen, completely unnecessary
-			printf("Created Entity No. %i \n", i);
+			
+			
 		}
 
-		
-		////Animacion Torreta 4
-		//float duration2 = 4.0;
-		//Ogre::Animation* animationTurret401 = mSceneMgr->createAnimation("AnimTurret401",duration2);
-		//animationTurret401->setRotationInterpolationMode(Animation::RIM_LINEAR);
-		//Ogre::NodeAnimationTrack* Turret401Track = animationTurret401->createNodeTrack(0,nodeObst1[1]);
-		//Ogre::TransformKeyFrame* keyTurret04;
-
-		//keyTurret04 = Turret401Track->createNodeKeyFrame(0.0);
-		//keyTurret04->setRotation(Quaternion (Degree(0), Vector3::UNIT_Y));
-		//keyTurret04->setScale(nodeObst1[1]->getScale());
-		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
-
-		//keyTurret04 = Turret401Track->createNodeKeyFrame(1.0);
-		//keyTurret04->setRotation(Quaternion (Degree(90), Vector3::UNIT_Y));
-		//keyTurret04->setScale(nodeObst1[1]->getScale());
-		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
-
-		//keyTurret04 = Turret401Track->createNodeKeyFrame(2.0);
-		//keyTurret04->setRotation(Quaternion (Degree(180), Vector3::UNIT_Y));
-		//keyTurret04->setScale(nodeObst1[1]->getScale());
-		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
-
-		//keyTurret04 = Turret401Track->createNodeKeyFrame(3.0);
-		//keyTurret04->setRotation(Quaternion (Degree(270), Vector3::UNIT_Y));
-		//keyTurret04->setScale(nodeObst1[1]->getScale());
-		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
-
-		//keyTurret04 = Turret401Track->createNodeKeyFrame(4.0);
-		//keyTurret04->setRotation(Quaternion (Degree(0), Vector3::UNIT_Y));
-		//keyTurret04->setScale(nodeObst1[1]->getScale());
-		//keyTurret04->setTranslate(nodeObst1[1]->getPosition());
-
-		//animationState = mSceneMgr->createAnimationState("AnimTurret401");
-		//animationState->setEnabled(true);
-		//animationState->setLoop(true);
 
 	}
 

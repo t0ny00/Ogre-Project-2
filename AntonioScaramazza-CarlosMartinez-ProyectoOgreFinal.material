@@ -101,6 +101,20 @@ material LightBlue2
    }
 }
 
+material LightBlue3
+{
+   technique
+   {
+      pass
+      {
+
+         ambient 0.027 0.854 0.815 1
+         diffuse 0.027 0.854 0.815 1
+         emissive 0 0 0 5
+      }
+   }
+}
+
 material DarkBlue2
 {
    technique
