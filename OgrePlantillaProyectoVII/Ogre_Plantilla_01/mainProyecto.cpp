@@ -57,6 +57,18 @@ int colliding = 1;
 int orientation = 1;
 float bounce_back_time = 0.0;
 
+float rolled_right_time = 0.0;
+float rolled_left_time = 0.0;
+int rollLeftCounter = 21;
+int unrollLeftCounter = 21;
+bool rolledLeft = false;
+int rollRightCounter = 21;
+int unrollRightCounter = 21;
+bool rolledRight = false;
+
+
+bool spaceship_mode = false;
+
 //Ogre::AnimationState* animationState;
 //Ogre::Animation* animationObstSpin[19];
 
@@ -89,6 +101,11 @@ bool collision(Ogre::SceneNode *nodeCar, Ogre::SceneNode *nodeObj, float radius1
 void rotateWheel(Ogre::SceneNode *nodeWheel, float delta){
 	nodeWheel->pitch(Ogre::Radian(nodeWheel->getOrientation().y + delta));
 }
+
+void rotateChasis(Ogre::SceneNode *nodeChasis, float delta){
+	nodeChasis->roll(Ogre::Radian(nodeChasis->getOrientation().x + delta));
+}
+
 
 void turnRightWheels(Ogre::SceneNode *nodeWheel1,Ogre::SceneNode *nodeWheel2, float delta){
 	nodeWheel1->yaw(Ogre::Radian(nodeWheel1->getOrientation().x + delta));
@@ -193,13 +210,23 @@ public:
 		
 		if(_key->isKeyDown(OIS::KC_J)){
 			if(inertia_speed > 0) mov += Ogre::Vector3(colliding*80*inertia_speed,0,0);
-			if (!turnedLeft){
+			if (spaceship_mode){
+				if (!rolledLeft){
+					rolled_left_time = 0.2;
+					rolledLeft = true;
+					rollLeftCounter = 0;
+					unrollLeftCounter = 0;
+				} 
+				rolled_left_time = 0.2;
+			} else {
+				if (!turnedLeft){
+					turned_left_time = 0.2;
+					turnedLeft = true;
+					turnLeftCounter = 0;
+					unturnLeftCounter = 0;
+				} 
 				turned_left_time = 0.2;
-				turnedLeft = true;
-				turnLeftCounter = 0;
-				unturnLeftCounter = 0;
-			} 
-			turned_left_time = 0.2;
+			}
 		}
 
 		if(_key->isKeyDown(OIS::KC_K)){
@@ -210,16 +237,27 @@ public:
 		
 		if(_key->isKeyDown(OIS::KC_L)){
 			if(inertia_speed > 0) mov += Ogre::Vector3(colliding*-80*inertia_speed,0,0);
-			if (!turnedRight){
+			if(spaceship_mode){
+				if (!rolledRight){
+					rolled_right_time = 0.2;
+					rolledRight = true;
+					rollRightCounter = 0;
+					unrollRightCounter = 0;
+				}
+				rolled_right_time = 0.2;
+			} else {
+				if (!turnedRight){
+					turned_right_time = 0.2;
+					turnedRight = true;
+					turnRightCounter = 0;
+					unturnRightCounter = 0;
+				}
 				turned_right_time = 0.2;
-				turnedRight = true;
-				turnRightCounter = 0;
-				unturnRightCounter = 0;
 			}
-			turned_right_time = 0.2;
 		}
 
-		if(nodePlayer->getPosition().z >= 6530){
+		if(nodePlayer->getPosition().z >= 653){
+			spaceship_mode = true;
 			animationStateExpRightWing->setEnabled(true);
 			animationStateExpLeftWing->setEnabled(true);
 			animationStateRollWheel1->setEnabled(true);
@@ -318,37 +356,77 @@ public:
 			inertia_speed -= 0.05;
 		}
 
-		if (turnedLeft){
-			if (turnLeftCounter < 10) {
-				turnLeftWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
-				turnLeftCounter++;
-			} else {
-				if (turned_left_time > 0.0){
-					turned_left_time -= evt.timeSinceLastFrame;
+		if(spaceship_mode){
+			if (rolledLeft){
+				if (rollLeftCounter < 10) {
+					rotateChasis(_nodeChasis01, -3 * 0.015);
+					rollLeftCounter++;
 				} else {
-					if(unturnLeftCounter < 10){
-						turnLeftWheels(rotatorRueda01,rotatorRueda02, - 4 * 0.015);
-						unturnLeftCounter++;
+					if (rolled_left_time > 0.0){
+						rolled_left_time -= evt.timeSinceLastFrame;
 					} else {
-						turnedLeft = false;
+						if(unrollLeftCounter < 10){
+							rotateChasis(_nodeChasis01, 3 * 0.015);
+							unrollLeftCounter++;
+						} else {
+							rolledLeft = false;
+						}
+					}
+				}
+			}
+		} else {
+			if (turnedLeft){
+				if (turnLeftCounter < 10) {
+					turnLeftWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
+					turnLeftCounter++;
+				} else {
+					if (turned_left_time > 0.0){
+						turned_left_time -= evt.timeSinceLastFrame;
+					} else {
+						if(unturnLeftCounter < 10){
+							turnLeftWheels(rotatorRueda01,rotatorRueda02, -4 * 0.015);
+							unturnLeftCounter++;
+						} else {
+							turnedLeft = false;
+						}
 					}
 				}
 			}
 		}
 
-		if (turnedRight){
-			if (turnRightCounter < 10) {
-				turnRightWheels(rotatorRueda01,rotatorRueda02, -4 * 0.015);
-				turnRightCounter++;
-			} else {
-				if (turned_right_time > 0.0){
-					turned_right_time -= evt.timeSinceLastFrame;
+		if(spaceship_mode){
+			if (rolledRight){
+				if (rollRightCounter < 10) {
+					rotateChasis(_nodeChasis01, 3 * 0.015);
+					rollRightCounter++;
 				} else {
-					if(unturnRightCounter < 10){
-						turnRightWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
-						unturnRightCounter++;
+					if (rolled_right_time > 0.0){
+						rolled_right_time -= evt.timeSinceLastFrame;
 					} else {
-						turnedRight = false;
+						if(unrollRightCounter < 10){
+							rotateChasis(_nodeChasis01, - 3 * 0.015);
+							unrollRightCounter++;
+						} else {
+							rolledRight = false;
+						}
+					}
+				}
+			}
+		} else {
+			if (turnedRight){
+				if (turnRightCounter < 10) {
+					turnRightWheels(rotatorRueda01,rotatorRueda02, -4 * 0.015);
+					turnRightCounter++;
+				} else {
+					if (turned_right_time > 0.0){
+						turned_right_time -= evt.timeSinceLastFrame;
+					} else {
+						if(unturnRightCounter < 10){
+							turnRightWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
+							unturnRightCounter++;
+						} else {
+							turnedRight = false;
+						}
 					}
 				}
 			}
