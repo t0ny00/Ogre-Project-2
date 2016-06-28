@@ -1,0 +1,12 @@
+Para correr el juego colocar los archivos:
+	arial.ttf
+	AntonioScaramazza-CarlosMartinez-ProyectoOgreFinal.material
+	AntonioScaramazza-CarlosMartinez-Font.fontdef
+
+Dentro de la carpeta "C:\OgreSDK_vc11_v1-9-0\media\materials\scripts"
+
+Y colocar la carpeta completa "AntonioScaramazza-CarlosMartinez-Texturas"
+dentro de "C:\OgreSDK_vc11_v1-9-0\media\materials\textures"  
+
+Jugabilidad: usar W,A,S,D para moverse y cuando se tranforme en nave utilice el 
+raton para subir y bajar la punta de la nave.
