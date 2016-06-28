@@ -328,6 +328,7 @@ public:
 		scoreText->setDimensions(100, 100);
 		scoreText->setCaption("Score: 0");
 		scoreText->setCharHeight(35);
+		scoreText->setFontName("AntonioScaramazza-CarlosMartinez-Font");
 		scoreText->setColourBottom(ColourValue(1, 1, 1));
 		scoreText->setColourTop(ColourValue(0.5, 0.7, 0.5));
  
