@@ -127,7 +127,7 @@ material Gold_3
          lighting on
  
          ambient 0.882 1 0.039 1
-         diffuse 0 0 0 1
+         diffuse  0.882 1 0.039 1
          emissive 0 0 0 1
       }
    }
@@ -188,7 +188,7 @@ material matRoca01
 
 			texture_unit
 			{
-				texture AntonioScaramazza-CarlosMartinez-Texturas/.jpg
+				texture terr_rock6.jpg
 				scale 0.2 0.2
 			}
 		}
@@ -289,7 +289,7 @@ material suelo
 			lighting on
 			ambient 0.1 0.1 0.1 1
 			diffuse 1.0 1.0 1.0 1
-			emissive 0 0 0 1
+			emissive 1 1 1 0.15
 
 			texture_unit
 			{

@@ -1,4 +1,6 @@
 #include "Ogre\ExampleApplication.h"
+#include "OgreTextAreaOverlayElement.h" 
+#include "OgreFontManager.h"
 
 #define coinNumber 30
 
@@ -7,6 +9,10 @@ float radiusCoin = 0.5;
 float radiusObstacles = 0.7;
 float radiusWall = 5;
 bool isColliding = false;
+TextAreaOverlayElement* scoreText;
+Overlay* overlay;
+int score = 0;
+int coinsCollected[coinNumber];
 
 // car 12.5
 // coin 0.5
@@ -67,6 +73,8 @@ bool collisionWall(Ogre::SceneNode *nodeCar, Vector3 sphere, float radius1, floa
 	float minDist = radius1 + radius2;
 	return dist <= minDist * minDist;
 }
+
+
 
 class FrameListenerClase : public Ogre::FrameListener{
 
@@ -254,18 +262,24 @@ public:
 			else isColliding = false;
 		};
 
+		Ogre::String scoreString;
 		for (int i = 0; i < (sizeof(nodeCoin) / sizeof(nodeCoin[0])); i++){
-			if (collision(_nodeChasis01,nodeCoin[i],radiusCar,radiusCoin)) {
+			if (collision(_nodeChasis01,nodeCoin[i],radiusCar,radiusCoin) && coinsCollected[i] == 0) {
 				nodeParticle->setPosition(nodeCoin[i]->getPosition());
 				partSystem->setEmitting(true);
 				nodeCoin[i]->setVisible(false);
+				coinsCollected[i] = 1;
 				time = 0;
+				score += 10;
+				scoreString = Ogre::StringConverter::toString(score); 
+				scoreText->setCaption("Score: " + scoreString);
+				overlay->show();
 			}
 		};
 
 		time += evt.timeSinceLastFrame;
 		if (time > 0.5) partSystem->setEmitting(false);
-
+		
 		return true;
 	}
 
@@ -296,9 +310,37 @@ public:
 	void createScene()
 	{
 
-		radiusCar = 12.5;
+		OverlayManager& overlayManager = OverlayManager::getSingleton();
+ 
+		// Create a panel
+		OverlayContainer* panel = static_cast<OverlayContainer*>(
+			overlayManager.createOverlayElement("Panel", "PanelName"));
+		panel->setMetricsMode(Ogre::GMM_PIXELS);
+		panel->setPosition(10, 10);
+		panel->setDimensions(100, 100);
+		//panel->setMaterialName("MaterialName"); // Optional background material
+ 
+		// Create a text area
+		scoreText = static_cast<TextAreaOverlayElement*>(
+			overlayManager.createOverlayElement("TextArea", "TextAreaName"));
+		scoreText->setMetricsMode(Ogre::GMM_PIXELS);
+		scoreText->setPosition(0, 0);
+		scoreText->setDimensions(100, 100);
+		scoreText->setCaption("Score: 0");
+		scoreText->setCharHeight(35);
+		scoreText->setColourBottom(ColourValue(1, 1, 1));
+		scoreText->setColourTop(ColourValue(0.5, 0.7, 0.5));
+ 
+		// Create an overlay, and add the panel
+		overlay = overlayManager.create("OverlayName");
+		overlay->add2D(panel);
+ 
+		// Add the text area to the panel
+		panel->addChild(scoreText);
+ 
+		// Show the overlay
+		overlay->show();
 		
-
 		mSceneMgr->setAmbientLight(Ogre::ColourValue(1.0, 1.0, 1.0));
 		mSceneMgr->setShadowTechnique(Ogre::SHADOWTYPE_STENCIL_ADDITIVE);
 		mSceneMgr->setSkyDome(true, "StarSky", 5, 8);
@@ -317,34 +359,47 @@ public:
 
 		
 
-		///*Ogre::Entity* entEsferaLuz01 = mSceneMgr->createEntity("EsferaLuz01","sphere.mesh");
-		//Ogre::SceneNode* nodeEsfera01 = mSceneMgr->createSceneNode("nodeEsferaLuz01");
-		//mSceneMgr->getRootSceneNode()->addChild(nodeEsfera01);
-		//nodeEsfera01->attachObject(entEsferaLuz01);
-		//Ogre::SceneNode* nodeLuzP01 = mSceneMgr->createSceneNode("nodeLuzPoint01");*/
+		/*Ogre::Entity* entEsferaLuz01 = mSceneMgr->createEntity("EsferaLuz01","sphere.mesh");
+		Ogre::SceneNode* nodeEsfera01 = mSceneMgr->createSceneNode("nodeEsferaLuz01");
+		mSceneMgr->getRootSceneNode()->addChild(nodeEsfera01);
+		nodeEsfera01->attachObject(entEsferaLuz01);
+		Ogre::SceneNode* nodeLuzP01 = mSceneMgr->createSceneNode("nodeLuzPoint01");*/
 
 		//Ogre::Light* LuzPuntual03 = mSceneMgr->createLight("Luz03");
 		//LuzPuntual03->setType(Ogre::Light::LT_POINT);
-		//LuzPuntual03->setPosition(0,25,5000);
-		//LuzPuntual03->setDiffuseColour(1.0, 0, 0.0);      //color the light orange 
-		//LuzPuntual03->setSpecularColour(1.0, 0.0, 0.0);    //yellow highlights
-		//LuzPuntual03->setAttenuation(600, 0.0, 0.001, 0.0001);
+		//LuzPuntual03->setPosition(0,25,0);
+		//LuzPuntual03->setDiffuseColour(1.0, 1.0, 1.0);      //color the light orange 
+		//LuzPuntual03->setAttenuation(3250, 1.0, 0.0014, 0.000007);
 		//LuzPuntual03->setCastShadows(false);
 
-		///*nodeLuzP01->attachObject(LuzPuntual03);
-		//nodeEsfera01->addChild(nodeLuzP01);
-		//nodeEsfera01->setScale(0.05,0.05,0.05);
-		//nodeEsfera01->setPosition(0,25,3000);*/
+		//Ogre::Light* LuzPuntual04 = mSceneMgr->createLight("Luz04");
+		//LuzPuntual04->setType(Ogre::Light::LT_POINT);
+		//LuzPuntual04->setPosition(0,25,3100);
+		//LuzPuntual04->setDiffuseColour(1.0, 1.0, 1.0);      //color the light orange 
+		//LuzPuntual04->setAttenuation( 500, 1.0f, 4.5/500, 75.0f/(500*500) );
+		//LuzPuntual04->setCastShadows(false);
 
+		//Ogre::Light* LuzPuntual05 = mSceneMgr->createLight("Luz05");
+		//LuzPuntual05->setType(Ogre::Light::LT_POINT);
+		//LuzPuntual05->setPosition(0,25,4500);
+		//LuzPuntual05->setDiffuseColour(1.0, 1.0, 1.0);      //color the light orange 
+		//LuzPuntual05->setAttenuation(500, 1.0f, 2.5/500, 50.0f/(500*500));
+		//LuzPuntual05->setCastShadows(false);
+
+		/*nodeLuzP01->attachObject(LuzPuntual03);
+		nodeEsfera01->addChild(nodeLuzP01);
+		nodeEsfera01->setScale(0.05,0.05,0.05);
+		nodeEsfera01->setPosition(0,25,3000);*/
+		
 		//Ogre::Light* LuzPuntual04 = mSceneMgr->createLight("Luz04");
 		//LuzPuntual04->setType(Ogre::Light::LT_SPOTLIGHT);
 		//LuzPuntual04->setPosition(0,10,0);
 		//LuzPuntual04->setDiffuseColour(1, 1, 0);      //color the light orange 
 		//LuzPuntual04->setSpecularColour(1, 1, 0);    //yellow highlights
 		//LuzPuntual04->setDirection(Ogre::Vector3( 0, -1, 0 ));
-		//LuzPuntual04->setSpotlightInnerAngle(Ogre::Degree(5.f));
-		//LuzPuntual04->setSpotlightOuterAngle(Ogre::Degree(20.f));
-		//LuzPuntual04->setSpotlightFalloff(0.0f);
+		//LuzPuntual04->setSpotlightInnerAngle(Ogre::Degree(10.f));
+		//LuzPuntual04->setSpotlightOuterAngle(Ogre::Degree(40.f));
+		//LuzPuntual04->setSpotlightFalloff(1.0f);
 		//LuzPuntual04->setCastShadows(false);
 		////LuzPuntual04->setAttenuation(600, 0.0, 0.001, 0.0001);
 
