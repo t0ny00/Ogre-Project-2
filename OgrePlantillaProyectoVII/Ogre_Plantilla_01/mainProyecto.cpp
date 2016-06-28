@@ -13,10 +13,19 @@ TextAreaOverlayElement* scoreText;
 Overlay* overlay;
 int score = 0;
 int coinsCollected[coinNumber];
+bool finished = true;
 
 // car 12.5
 // coin 0.5
 //obs 0.7
+
+Ogre::AnimationState* animationStateExpRightWing;
+Ogre::AnimationState* animationStateExpLeftWing;
+Ogre::AnimationState* animationStateRollWheel1;
+Ogre::AnimationState* animationStateRollWheel2;
+Ogre::AnimationState* animationStateRollWheel3;
+Ogre::AnimationState* animationStateRollWheel4;
+Ogre::AnimationState* animationStateTurbine;
 
 Ogre::SceneNode* _nodeChasis01;
 Ogre::SceneNode* nodeObst1[7];
@@ -28,6 +37,21 @@ Ogre::SceneNode* nodeRock03[8];
 Ogre::SceneNode* nodeRock04[8];
 Ogre::SceneNode* nodeCoin[coinNumber];
 
+Ogre::SceneNode* nodePlayer;
+Ogre::SceneNode* rotatorRueda01;
+Ogre::SceneNode* rotatorRueda02;
+Ogre::SceneNode* rotatorRueda03;
+Ogre::SceneNode* rotatorRueda04;
+Ogre::SceneNode* nodeRueda01;
+Ogre::SceneNode* nodeRueda02;
+Ogre::SceneNode* nodeRueda03;
+Ogre::SceneNode* nodeRueda04;
+Ogre::SceneNode* turbine;
+Ogre::SceneNode* wing1;
+Ogre::SceneNode* wing2;
+
+Ogre::SceneNode* nodeCam;
+
 int movingObstDir[8];
 int movingObstSpeed[8];
 Vector3 wallLeftCoord[119];
@@ -37,6 +61,33 @@ Vector3 wallLeftSecondCoord[119];
 
 Ogre::SceneNode* nodeParticle;
 Ogre::ParticleSystem* partSystem;
+
+float inertia_time = 0.0;
+float inertia_speed = 0.0;
+float turned_right_time = 0.0;
+float turned_left_time = 0.0;
+int turnLeftCounter = 21;
+int unturnLeftCounter = 21;
+bool turnedLeft = false;
+
+int turnRightCounter = 21;
+int unturnRightCounter = 21;
+bool turnedRight = false;
+int colliding = 1;
+int orientation = 1;
+float bounce_back_time = 0.0;
+
+float rolled_right_time = 0.0;
+float rolled_left_time = 0.0;
+int rollLeftCounter = 21;
+int unrollLeftCounter = 21;
+bool rolledLeft = false;
+int rollRightCounter = 21;
+int unrollRightCounter = 21;
+bool rolledRight = false;
+
+
+bool spaceship_mode = false;
 
 //Ogre::AnimationState* animationState;
 //Ogre::Animation* animationObstSpin[19];
@@ -74,7 +125,26 @@ bool collisionWall(Ogre::SceneNode *nodeCar, Vector3 sphere, float radius1, floa
 	return dist <= minDist * minDist;
 }
 
+void rotateWheel(Ogre::SceneNode *nodeWheel, float delta){
+	nodeWheel->pitch(Ogre::Radian(nodeWheel->getOrientation().y + delta));
+}
 
+void rotateChasis(Ogre::SceneNode *nodeChasis, float delta){
+	nodeChasis->roll(Ogre::Radian(nodeChasis->getOrientation().x + delta));
+}
+
+
+void turnRightWheels(Ogre::SceneNode *nodeWheel1,Ogre::SceneNode *nodeWheel2, float delta){
+	nodeWheel1->yaw(Ogre::Radian(nodeWheel1->getOrientation().x + delta));
+	nodeWheel2->yaw(Ogre::Radian(nodeWheel2->getOrientation().x + delta));
+}
+
+
+void turnLeftWheels(Ogre::SceneNode *nodeWheel1,Ogre::SceneNode *nodeWheel2, float delta){
+	
+	nodeWheel1->yaw(Ogre::Radian(nodeWheel1->getOrientation().x + delta));
+	nodeWheel2->yaw(Ogre::Radian(nodeWheel2->getOrientation().x + delta));
+}
 
 class FrameListenerClase : public Ogre::FrameListener{
 
@@ -105,6 +175,7 @@ public:
 		_cam = cam;
 		
 		time = 0;
+		nodeCam->attachObject(_cam);
 	}
 	
 
@@ -115,6 +186,8 @@ public:
 	}
 
 	bool frameStarted(const Ogre::FrameEvent &evt){
+		
+		
 		float cam_speed = 20;
 		_key->capture();
 		_mouse->capture();
@@ -123,108 +196,205 @@ public:
 		Ogre::Vector3 tmov(0,0,0);
 		Ogre::Vector3 tcam(0,0,0);
 
+		//-50, 390, con x 122
+		//391, 2320, con x 204
+		//2940, 4930, con x -32 a 26
+		//5505, 6530, con x 204
+		float xLimit1;
+		float xLimit2;
+		if (nodePlayer->getPosition().z > -50 && nodePlayer->getPosition().z < 390 ) xLimit1 = 122;
+		else if (nodePlayer->getPosition().z > 390 && nodePlayer->getPosition().z < 2320 ) xLimit1 = 204;
+		else if (nodePlayer->getPosition().z > 2940 && nodePlayer->getPosition().z < 4930 ) xLimit1 = 32;
+		else if (nodePlayer->getPosition().z > 5505 && nodePlayer->getPosition().z < 6530 ) xLimit1 = 204;
+		else xLimit1 = 1000;
+
 		//Camara
-		if(_key->isKeyDown(OIS::KC_LSHIFT))
-			cam_speed += 300;
+		if(_key->isKeyDown(OIS::KC_R) && finished == true){
+			spaceship_mode = false;
+			animationStateExpRightWing->setTimePosition(0);
+			animationStateExpLeftWing->setTimePosition(0);
+			animationStateRollWheel1->setTimePosition(0);
+			animationStateRollWheel2->setTimePosition(0);
+			animationStateRollWheel3->setTimePosition(0);
+			animationStateRollWheel4->setTimePosition(0);
+			animationStateTurbine->setTimePosition(0);
+			animationStateExpRightWing->setEnabled(false);
+			animationStateExpLeftWing->setEnabled(false);
+			animationStateRollWheel1->setEnabled(false);
+			animationStateRollWheel2->setEnabled(false);
+			animationStateRollWheel3->setEnabled(false);
+			animationStateRollWheel4->setEnabled(false);
+			animationStateTurbine->setEnabled(false);
+			score = 0;
+			scoreText->setCaption("Score: 0");
+			overlay->show();
+			rotatorRueda01->resetToInitialState();
+			rotatorRueda02->resetToInitialState();
+			rotatorRueda03->resetToInitialState();
+			rotatorRueda04->resetToInitialState();
+			nodeRueda01->resetToInitialState();
+			nodeRueda02->resetToInitialState();
+			nodeRueda03->resetToInitialState();
+			nodeRueda04->resetToInitialState();
+			turbine->resetToInitialState();
+			wing2->resetToInitialState();
+			wing1->resetToInitialState();
+			nodePlayer->resetToInitialState();
+			nodeCam->resetToInitialState();
+			for (int i = 0; i < (sizeof(nodeCoin) / sizeof(nodeCoin[0])); i++){
+				nodeCoin[i]->setVisible(true);
+				coinsCollected[i] = 0;
+			}
+			
+		}
 
 		if (_key->isKeyDown(OIS::KC_ESCAPE))
 			return false;
 
-		if(_key->isKeyDown(OIS::KC_W))
-			tcam += Ogre::Vector3(0,0,-cam_speed);
-		
-		if(_key->isKeyDown(OIS::KC_S))
-			tcam += Ogre::Vector3(0,0,cam_speed);
 
-		if(_key->isKeyDown(OIS::KC_A))
-			tcam += Ogre::Vector3(-cam_speed,0,0);
-		
-		if(_key->isKeyDown(OIS::KC_D))
-			tcam += Ogre::Vector3(cam_speed,0,0);
-
-		/*if(_key->isKeyDown(OIS::KC_V))
-			r1 += 0.5;
-
-		if(_key->isKeyDown(OIS::KC_B))
-			r1 -= 0.5;
-
-		if(_key->isKeyDown(OIS::KC_N))
-			r2 += 0.5;
-
-		if(_key->isKeyDown(OIS::KC_M))
-			r2 -= 0.5;*/
-
-		if(_key->isKeyDown(OIS::KC_C))
-			system("cls");
-
-		//Car test
 		bool hit = false;
 		Vector3 mov(0,0,0);
 
-		if(_key->isKeyDown(OIS::KC_I)){
+		if(_key->isKeyDown(OIS::KC_W)){
 			for (int i = 0; i < (sizeof(wallLeftCoord) / sizeof(wallLeftCoord[0])); i++) // Loop through the entities
 			{
-				if(collisionWall(_nodeChasis01,wallLeftCoord[i],radiusCar,radiusWall)) hit = true;
-				if(collisionWall(_nodeChasis01,wallRightCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(nodePlayer,wallLeftCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(nodePlayer,wallRightCoord[i],radiusCar,radiusWall)) hit = true;
 			}
-			if (!hit)mov += Ogre::Vector3(0,0,100);
-			hit = false;
+			if (!hit){
+				orientation = 1;
+				inertia_time = 2.0;
+				inertia_speed = 1.0;
+				hit = false;
+			}
+			if ( nodePlayer->getPosition().y > 300 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y-20,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().y < -300 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y+20,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().x > 300 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x-20,nodePlayer->getPosition().y,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().x < -300 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x+20,nodePlayer->getPosition().y,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().z < 6520 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y,nodePlayer->getPosition().z+20);
 		}
-		if(_key->isKeyDown(OIS::KC_J)){
+		
+		for (int i = 0; i < (sizeof(wallLeftCoord) / sizeof(wallLeftCoord[0])); i++) // Loop through the entities
+		{
+				if(collisionWall(nodePlayer,wallLeftSecondCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(nodePlayer,wallRightSecondCoord[i],radiusCar,radiusWall)) hit = true;
+		}
+		
+
+		if(_key->isKeyDown(OIS::KC_A) && nodePlayer->getPosition().x < xLimit1 && !hit){
+			if(inertia_speed > 0 && !hit) mov += Ogre::Vector3(colliding*80*inertia_speed,0,0);
+			if (spaceship_mode){
+				if (!rolledLeft){
+					rolled_left_time = 0.2;
+					rolledLeft = true;
+					rollLeftCounter = 0;
+					unrollLeftCounter = 0;
+				} 
+				rolled_left_time = 0.2;
+				
+			} else {
+				if (!turnedLeft){
+					turned_left_time = 0.2;
+					turnedLeft = true;
+					turnLeftCounter = 0;
+					unturnLeftCounter = 0;
+				} 
+				turned_left_time = 0.2;
+			}
+		}
+
+		if(_key->isKeyDown(OIS::KC_S)){
 			for (int i = 0; i < (sizeof(wallLeftCoord) / sizeof(wallLeftCoord[0])); i++) // Loop through the entities
 			{
-				if(collisionWall(_nodeChasis01,wallLeftCoord[i],radiusCar,radiusWall)) hit = true;
-				if(collisionWall(_nodeChasis01,wallLeftSecondCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(nodePlayer,wallRightSecondCoord[i],radiusCar,radiusWall)) hit = true;
+				if(collisionWall(nodePlayer,wallLeftSecondCoord[i],radiusCar,radiusWall)) hit = true;
 			}
-			if (!hit) mov += Ogre::Vector3(100,0,0);
-			hit = false;
-		}
-			
-
-		if(_key->isKeyDown(OIS::KC_K)){
-			for (int i = 0; i < (sizeof(wallRightCoord) / sizeof(wallRightCoord[0])); i++) // Loop through the entities
-			{
-				if(collisionWall(_nodeChasis01,wallLeftSecondCoord[i],radiusCar,radiusWall)) hit = true;
-				if(collisionWall(_nodeChasis01,wallRightSecondCoord[i],radiusCar,radiusWall)) hit = true;
-
+			if (!hit){
+				inertia_time = 2.0;
+				inertia_speed = 1.0;
+				orientation = -1;
+				hit = false;
 			}
-			if (!hit) mov += Ogre::Vector3(0,0,-100);
-			hit = false;
-			
-			
+			if ( nodePlayer->getPosition().y > 300 ) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y-20,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().y < -300) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y+20,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().z < 6520 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y,nodePlayer->getPosition().z+20);
+			if ( nodePlayer->getPosition().x > 300 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x-20,nodePlayer->getPosition().y,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().x < -300 && spaceship_mode) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x+20,nodePlayer->getPosition().y,nodePlayer->getPosition().z);
+			if ( nodePlayer->getPosition().x  < -122 && nodePlayer->getPosition().x  > -204 && nodePlayer->getPosition().z  < 415 ) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y,nodePlayer->getPosition().z+10);
+			if ( nodePlayer->getPosition().x  > 122 && nodePlayer->getPosition().x  < 204 && nodePlayer->getPosition().z  < 415 ) 
+				nodePlayer->setPosition(nodePlayer->getPosition().x,nodePlayer->getPosition().y,nodePlayer->getPosition().z+10);
 		}
-			
 		
-		if(_key->isKeyDown(OIS::KC_L)){
-			for (int i = 0; i < (sizeof(wallRightCoord) / sizeof(wallRightCoord[0])); i++) // Loop through the entities
-			{
-				if(collisionWall(_nodeChasis01,wallRightCoord[i],radiusCar,radiusWall)) hit = true;
-				if(collisionWall(_nodeChasis01,wallRightSecondCoord[i],radiusCar,radiusWall)) hit = true;
-
+		if(_key->isKeyDown(OIS::KC_D) && nodePlayer->getPosition().x > -xLimit1 && !hit){
+			if(inertia_speed > 0) mov += Ogre::Vector3(colliding*-80*inertia_speed,0,0);
+			if(spaceship_mode){
+				if (!rolledRight){
+					rolled_right_time = 0.2;
+					rolledRight = true;
+					rollRightCounter = 0;
+					unrollRightCounter = 0;
+				}
+				rolled_right_time = 0.2;
+			} else {
+				if (!turnedRight){
+					turned_right_time = 0.2;
+					turnedRight = true;
+					turnRightCounter = 0;
+					unturnRightCounter = 0;
+				}
+				turned_right_time = 0.2;
 			}
-			if (!hit) mov += Ogre::Vector3(-100,0,0);
-			hit = false;
 		}
-			
+
 		
 
-		_nodeChasis01->translate(mov*evt.timeSinceLastFrame);
+		if(nodePlayer->getPosition().z >= 6520){
+			spaceship_mode = true;
+			animationStateExpRightWing->setEnabled(true);
+			animationStateExpLeftWing->setEnabled(true);
+			animationStateRollWheel1->setEnabled(true);
+			animationStateRollWheel2->setEnabled(true);
+			animationStateRollWheel3->setEnabled(true);
+			animationStateRollWheel4->setEnabled(true);
+			animationStateTurbine->setEnabled(true);
+			
+		}	
 		
+		if(nodePlayer->getPosition().z >= 3000 && nodePlayer->getPosition().z < 4950) nodeCam->setPosition(0,-70,40);
+		else nodeCam->setPosition(0,0,0);
 
 		//camara control
 		float rotX = _mouse->getMouseState().X.rel * evt.timeSinceLastFrame*-1;
 		float rotY = _mouse->getMouseState().Y.rel * evt.timeSinceLastFrame*-1;
-		_cam->yaw(Ogre::Radian(rotX));
-		_cam->pitch(Ogre::Radian(rotY));
-		_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);
-
+		/*_cam->yaw(Ogre::Radian(rotX));
+		_cam->pitch(Ogre::Radian(rotY));*/
+		/*_cam->moveRelative(tcam*movSpeed*evt.timeSinceLastFrame);*/
+		if (spaceship_mode) nodePlayer->pitch(Ogre::Radian(rotY));
+		if (spaceship_mode) nodeCam->pitch(-Ogre::Radian(rotY));
 		//animationState->addTime(evt.timeSinceLastFrame);
+
+		
+
 		
 		for (int i = 0; i < (sizeof(nodeObst1) / sizeof(nodeObst1[0])); i++){
 			rotateObstacle(nodeObst1[i],4 * evt.timeSinceLastFrame);
-			if (collision(_nodeChasis01,nodeObst1[i],radiusCar,radiusObstacles) && !isColliding){
+			if (collision(nodePlayer,nodeObst1[i],radiusCar,radiusObstacles) && !isColliding){
 				isColliding = true;
 				//Do collision stuff
+				inertia_speed += 0.2;
+				bounce_back_time = 0.3;
+				colliding = -1;
 			}
 			else isColliding = false;
 		};
@@ -232,17 +402,23 @@ public:
 		for (int i = 0; i < (sizeof(nodeObst2) / sizeof(nodeObst2[0])); i++){
 			rotateObstacle(nodeObst2[i],4 * evt.timeSinceLastFrame);
 			moveObstacle(nodeObst2[i], movingObstSpeed[i]  * evt.timeSinceLastFrame, movingObstDir[i]);
-			if (collision(_nodeChasis01,nodeObst2[i],radiusCar,radiusObstacles) && !isColliding){
+			if (collision(nodePlayer,nodeObst2[i],radiusCar,radiusObstacles) && !isColliding){
 				isColliding = true;
 				//Do collision stuff
+				inertia_speed += 0.2;
+				bounce_back_time = 0.3;
+				colliding = -1;
 			}
 			else isColliding = false;
 		};
 		for (int i = 0; i < (sizeof(nodeObst3) / sizeof(nodeObst3[0])); i++){
 			rotateObstacle(nodeObst3[i],4 * evt.timeSinceLastFrame);
-			if (collision(_nodeChasis01,nodeObst3[i],radiusCar,radiusObstacles) && !isColliding){
+			if (collision(nodePlayer,nodeObst3[i],radiusCar,radiusObstacles) && !isColliding){
 				isColliding = true;
 				//Do collision stuff
+				inertia_speed += 0.2;
+				bounce_back_time = 0.3;
+				colliding = -1;
 			}
 			else isColliding = false;
 		};
@@ -252,19 +428,21 @@ public:
 			rotateRock(nodeRock02[i],17 * evt.timeSinceLastFrame);
 			rotateRock(nodeRock03[i],19 * evt.timeSinceLastFrame);
 			rotateRock(nodeRock04[i],32 * evt.timeSinceLastFrame);
-			if ((collision(_nodeChasis01,nodeRock01[i],radiusCar,radiusObstacles) ||
-				collision(_nodeChasis01,nodeRock02[i],radiusCar,radiusObstacles)  ||
-				collision(_nodeChasis01,nodeRock03[i],radiusCar,radiusObstacles)  ||
-				collision(_nodeChasis01,nodeRock04[i],radiusCar,radiusObstacles)) && !isColliding){
+			if ((collision(nodePlayer,nodeRock01[i],radiusCar,radiusObstacles + 0.2) ||
+				collision(nodePlayer,nodeRock02[i],radiusCar,radiusObstacles + 0.2)  ||
+				collision(nodePlayer,nodeRock03[i],radiusCar,radiusObstacles + 0.2)  ||
+				collision(nodePlayer,nodeRock04[i],radiusCar,radiusObstacles + 0.2)) && !isColliding){
 				isColliding = true;
-				//Do collision stuff
+				inertia_speed += 0.2;
+				bounce_back_time = 0.3;
+				colliding = -1;
 			}
 			else isColliding = false;
 		};
 
 		Ogre::String scoreString;
 		for (int i = 0; i < (sizeof(nodeCoin) / sizeof(nodeCoin[0])); i++){
-			if (collision(_nodeChasis01,nodeCoin[i],radiusCar,radiusCoin) && coinsCollected[i] == 0) {
+			if (collision(nodePlayer,nodeCoin[i],radiusCar,radiusCoin) && coinsCollected[i] == 0) {
 				nodeParticle->setPosition(nodeCoin[i]->getPosition());
 				partSystem->setEmitting(true);
 				nodeCoin[i]->setVisible(false);
@@ -279,7 +457,115 @@ public:
 
 		time += evt.timeSinceLastFrame;
 		if (time > 0.5) partSystem->setEmitting(false);
-		
+	
+		if (bounce_back_time > 0.0) bounce_back_time -= evt.timeSinceLastFrame;
+		else colliding = 1;
+
+
+		if(inertia_speed > 0.0){
+			mov += Ogre::Vector3(0,0,orientation*colliding*100*inertia_speed);
+			rotateWheel(nodeRueda01,-4 * orientation * inertia_speed * evt.timeSinceLastFrame);
+			rotateWheel(nodeRueda02,4 * orientation * inertia_speed * evt.timeSinceLastFrame);
+			rotateWheel(nodeRueda03,4 * orientation * inertia_speed * evt.timeSinceLastFrame);
+			rotateWheel(nodeRueda04,-4 * orientation * inertia_speed * evt.timeSinceLastFrame);
+			inertia_time -= evt.timeSinceLastFrame;
+			inertia_speed -= 0.05;
+		}
+
+		if(spaceship_mode){
+			if (rolledLeft){
+				if (rollLeftCounter < 10) {
+					rotateChasis(_nodeChasis01, -3 * 0.015);
+					rollLeftCounter++;
+				} else {
+					if (rolled_left_time > 0.0){
+						rolled_left_time -= evt.timeSinceLastFrame;
+					} else {
+						if(unrollLeftCounter < 10){
+							rotateChasis(_nodeChasis01, 3 * 0.015);
+							unrollLeftCounter++;
+						} else {
+							rolledLeft = false;
+						}
+					}
+				}
+			}
+		} else {
+			if (turnedLeft){
+				if (turnLeftCounter < 10) {
+					turnLeftWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
+					turnLeftCounter++;
+				} else {
+					if (turned_left_time > 0.0){
+						turned_left_time -= evt.timeSinceLastFrame;
+					} else {
+						if(unturnLeftCounter < 10){
+							turnLeftWheels(rotatorRueda01,rotatorRueda02, -4 * 0.015);
+							unturnLeftCounter++;
+						} else {
+							turnedLeft = false;
+						}
+					}
+				}
+			}
+		}
+
+		if(spaceship_mode){
+			if (rolledRight){
+				if (rollRightCounter < 10) {
+					rotateChasis(_nodeChasis01, 3 * 0.015);
+					rollRightCounter++;
+				} else {
+					if (rolled_right_time > 0.0){
+						rolled_right_time -= evt.timeSinceLastFrame;
+					} else {
+						if(unrollRightCounter < 10){
+							rotateChasis(_nodeChasis01, - 3 * 0.015);
+							unrollRightCounter++;
+						} else {
+							rolledRight = false;
+						}
+					}
+				}
+			}
+		} else {
+			if (turnedRight){
+				if (turnRightCounter < 10) {
+					turnRightWheels(rotatorRueda01,rotatorRueda02, -4 * 0.015);
+					turnRightCounter++;
+				} else {
+					if (turned_right_time > 0.0){
+						turned_right_time -= evt.timeSinceLastFrame;
+					} else {
+						if(unturnRightCounter < 10){
+							turnRightWheels(rotatorRueda01,rotatorRueda02, 4 * 0.015);
+							unturnRightCounter++;
+						} else {
+							turnedRight = false;
+						}
+					}
+				}
+			}
+		}
+
+		if (nodePlayer->getPosition().z > 10325 ){
+			finished = true;
+			scoreString = Ogre::StringConverter::toString(score); 
+			scoreText->setCaption("Final Score: " + scoreString + "\n\n PRESS 'R' TO RESTART GAME");
+			overlay->show();
+		}
+
+		nodePlayer->translate(nodePlayer->getOrientation()*mov*evt.timeSinceLastFrame);
+		if (animationStateExpRightWing->getEnabled()) animationStateExpRightWing->addTime(evt.timeSinceLastFrame);
+		if (animationStateExpLeftWing->getEnabled()) animationStateExpLeftWing->addTime(evt.timeSinceLastFrame);
+		if (animationStateRollWheel1->getEnabled()) animationStateRollWheel1->addTime(evt.timeSinceLastFrame);
+		if (animationStateRollWheel2->getEnabled()) animationStateRollWheel2->addTime(evt.timeSinceLastFrame);
+		if (animationStateRollWheel3->getEnabled()) animationStateRollWheel3->addTime(evt.timeSinceLastFrame);
+		if (animationStateRollWheel4->getEnabled()) animationStateRollWheel4->addTime(evt.timeSinceLastFrame);
+		if (animationStateTurbine->getEnabled()) animationStateTurbine->addTime(evt.timeSinceLastFrame);
+
+		printf("\nX is %f\nY is %f\nZ is %f\n",nodePlayer->getPosition().x,nodePlayer->getPosition().y,nodePlayer->getPosition().z);
+
 		return true;
 	}
 
@@ -305,6 +591,65 @@ public:
 		FrameListener01 = new FrameListenerClase(mCamera,mWindow);
 		mRoot->addFrameListener(FrameListener01);
 
+	}
+
+	ManualObject* generateWing1(String name, float g_x, float g_y, float g_z, float r_y, float f_h, float f_w1, float f_w2, float b_h, float b_w1,float b_w2, float d){
+
+	 ManualObject* manual = mSceneMgr->createManualObject(name);
+	  manual->begin("LightBlue3", RenderOperation::OT_TRIANGLE_STRIP);
+	  
+
+	  //      position(  R ,    G    , B  )
+
+	  manual->position( g_x+ b_w1, g_y+ -b_h, g_z+ d);        //1 
+	  manual->position( g_x+ b_w2, g_y+ b_h, g_z+ d);         //2 
+
+	  manual->position( g_x+ -f_w1, r_y+ g_y+ -f_h, g_z+ -d); //3 
+	  manual->position( g_x+ -f_w2,  r_y+ g_y+ f_h, g_z+ -d); //4 
+	  manual->position( g_x+ f_w1,  r_y+ g_y+ -f_h, g_z+ -d); //5 
+	  manual->position( g_x+ f_w2, r_y+ g_y+ f_h, g_z+ -d);   //6 
+
+	  manual->position( g_x+ b_w1, g_y+ -b_h, g_z+ d);        //1 
+	  manual->position( g_x+ b_w2, g_y+ b_h, g_z+ d);         //2 
+	  manual->position( g_x+ -f_w2,  r_y+ g_y+ f_h, g_z+ -d); //4 
+	  manual->position( g_x+ f_w2, r_y+ g_y+ f_h, g_z+ -d);   //6 
+	  manual->position( g_x+ f_w1,  r_y+ g_y+ -f_h, g_z+ -d); //5 
+	  manual->position( g_x+ b_w1, g_y+ -b_h, g_z+ d);        //1 
+	  manual->position( g_x+ -f_w1, r_y+ g_y+ -f_h, g_z+ -d); //3 
+
+ 
+	  manual->end();
+
+	  return manual;
+	}
+
+	ManualObject* generateWing2(String name, float g_x, float g_y, float g_z, float r_y, float f_h, float f_w1, float f_w2, float b_h, float b_w1,float b_w2, float d){
+
+	 ManualObject* manual = mSceneMgr->createManualObject(name);
+	  manual->begin("LightBlue3", RenderOperation::OT_TRIANGLE_STRIP);
+	  
+	  
+	  //      position(  R ,    G    , B  )
+
+	  manual->position( g_x+ -b_w1, g_y+ -b_h, g_z+ d);       //1
+	  manual->position( g_x+ -b_w2, g_y+  b_h, g_z+ d);       //2 
+
+	  manual->position( g_x+ -f_w1, r_y+ g_y+ -f_h, g_z+ -d); //3 
+	  manual->position( g_x+ -f_w2,  r_y+ g_y+ f_h, g_z+ -d); //4 
+	  manual->position( g_x+ f_w1,  r_y+ g_y+ -f_h, g_z+ -d); //5 
+	  manual->position( g_x+ f_w2, r_y+ g_y+ f_h, g_z+ -d);   //6 
+
+	  manual->position( g_x+ -b_w1, g_y+ -b_h, g_z+ d);       //1
+	  manual->position( g_x+ -b_w2, g_y+  b_h, g_z+ d);       //2 
+	  manual->position( g_x+ -f_w2,  r_y+ g_y+ f_h, g_z+ -d); //4 
+	  manual->position( g_x+ f_w2, r_y+ g_y+ f_h, g_z+ -d);   //6 
+	  manual->position( g_x+ f_w1,  r_y+ g_y+ -f_h, g_z+ -d); //5 
+	  manual->position( g_x+ -b_w1, g_y+ -b_h, g_z+ d);       //1
+	  manual->position( g_x+ -f_w1, r_y+ g_y+ -f_h, g_z+ -d); //3 
+
+ 
+	  manual->end();
+	  return manual;
 	}
 
 	void createScene()
@@ -404,6 +749,7 @@ public:
 		//LuzPuntual04->setCastShadows(false);
 		////LuzPuntual04->setAttenuation(600, 0.0, 0.001, 0.0001);
 
+
 		// Particula
 		nodeParticle = mSceneMgr->getRootSceneNode()->createChildSceneNode("test");
 		partSystem = mSceneMgr->createParticleSystem("Smoke","PurpleFountain");
@@ -438,23 +784,205 @@ public:
 		}
 
 
-		//Rueda
-		Ogre::SceneNode* _nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
-		mSceneMgr->getRootSceneNode()->addChild(_nodeRueda01);
-			
-		Ogre::Entity* _entRueda01 = mSceneMgr->createEntity("entRueda01", "ruedaDetallada.mesh");
-		_nodeRueda01->translate(-5.77,3.517,-9.462);
-		_entRueda01->setMaterialName("shRueda02");
-		_nodeRueda01->attachObject(_entRueda01);
+		nodePlayer = mSceneMgr->createSceneNode("Player");
+		mSceneMgr->getRootSceneNode()->addChild(nodePlayer);
+		nodeCam = mSceneMgr->createSceneNode("Cam");
+		nodePlayer->addChild(nodeCam);
+		
+		
 
 		//Chasis
 		_nodeChasis01 = mSceneMgr->createSceneNode("Chasis01");
-		mSceneMgr->getRootSceneNode()->addChild(_nodeChasis01);
+		nodePlayer->addChild(_nodeChasis01);
 			
 		Ogre::Entity* _entChasis01 = mSceneMgr->createEntity("entChasis01", "chasisCarro.mesh");
 		_entChasis01->setMaterialName("shCarro01");
 		_nodeChasis01->attachObject(_entChasis01);
+
+
+		//turbine
+		turbine = mSceneMgr->createSceneNode("turbine");
+		_nodeChasis01->addChild(turbine);
+
+		Ogre::Entity* entTurbine = mSceneMgr->createEntity("entTurbine", "Barrel.mesh");\
+		entTurbine->setMaterialName("LightBlue3");
+		turbine->attachObject(entTurbine);
+		turbine->rotate(Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(1,0,0)));
+		turbine->setScale(1.0,0.0,1.0);
+		turbine->translate(0.0,6.0,0.0);
 		
+		
+
+
+		//Wings
+		wing1 = mSceneMgr->createSceneNode("wing1");
+		_nodeChasis01->addChild(wing1);
+			
+		ManualObject* wing1object;
+		wing1object = generateWing1("wing1obj",0.0,0.0,0.0,0.0,0.1,4.0,4.0,0.1,4.0,4.0,2.0);
+		wing1->attachObject(wing1object);
+		wing1->setScale(0.0,3.0,2.0);
+		wing1->translate(0.0,4.0,0.0);
+		//wing1->setInitialState();
+
+		wing2 = mSceneMgr->createSceneNode("wing2");
+		_nodeChasis01->addChild(wing2);
+		
+		ManualObject* wing2object;
+		wing2object = generateWing2("wing2obj",0.0,0.0,0.0,0.0,0.1,4.0,4.0,0.1,4.0,4.0,2.0);
+		wing2->attachObject(wing2object);
+		wing2->setScale(0.0,3.0,2.0);
+		wing2->translate(0.0,4.0,0.0);
+		//wing2->setInitialState();
+
+		//Rotators
+		rotatorRueda01 = mSceneMgr->createSceneNode("rotatorRueda01");
+		rotatorRueda02 = mSceneMgr->createSceneNode("rotatorRueda02");
+		rotatorRueda03 = mSceneMgr->createSceneNode("rotatorRueda03");
+		rotatorRueda04 = mSceneMgr->createSceneNode("rotatorRueda04");
+		_nodeChasis01->addChild(rotatorRueda01);
+		_nodeChasis01->addChild(rotatorRueda02);
+		_nodeChasis01->addChild(rotatorRueda03);
+		_nodeChasis01->addChild(rotatorRueda04);
+		rotatorRueda01->translate(-5.77,3.517,9.462);
+		rotatorRueda02->translate(5.77,3.517,9.462);
+		rotatorRueda02->rotate(Ogre::Quaternion(Ogre::Degree(180), Ogre::Vector3(0,1,0)));
+		rotatorRueda03->translate(5.77,3.517,-9.462);
+		rotatorRueda03->rotate(Ogre::Quaternion(Ogre::Degree(180), Ogre::Vector3(0,1,0)));
+		rotatorRueda04->translate(-5.77,3.517,-9.462);
+		rotatorRueda04->setInitialState();
+		rotatorRueda03->setInitialState();
+		rotatorRueda02->setInitialState();
+		rotatorRueda01->setInitialState();
+		
+		//Rueda 1
+		nodeRueda01 = mSceneMgr->createSceneNode("Rueda01");
+		rotatorRueda03->addChild(nodeRueda01);
+			
+		Ogre::Entity* _entRueda01 = mSceneMgr->createEntity("entRueda01", "ruedaDetallada.mesh");\
+		_entRueda01->setMaterialName("shRueda02");
+		nodeRueda01->attachObject(_entRueda01);
+
+		//Rueda 2
+
+		nodeRueda02 = mSceneMgr->createSceneNode("Rueda02");
+		rotatorRueda04->addChild(nodeRueda02);
+			
+		Ogre::Entity* _entRueda02 = mSceneMgr->createEntity("entRueda02", "ruedaDetallada.mesh");
+		_entRueda02->setMaterialName("shRueda02");
+		nodeRueda02->attachObject(_entRueda02);
+
+		//Rueda 3
+
+		nodeRueda03 = mSceneMgr->createSceneNode("Rueda03");
+		rotatorRueda01->addChild(nodeRueda03);
+			
+		Ogre::Entity* _entRueda03 = mSceneMgr->createEntity("entRueda03", "ruedaDetallada.mesh");
+		//nodeRueda03->translate(-5.77,3.517,9.462);
+		_entRueda03->setMaterialName("shRueda02");
+		nodeRueda03->attachObject(_entRueda03);
+
+		//Rueda 4
+
+		nodeRueda04 = mSceneMgr->createSceneNode("Rueda04");
+		rotatorRueda02->addChild(nodeRueda04);
+		//nodeRueda04->yaw(Radian(180));
+			
+		Ogre::Entity* _entRueda04 = mSceneMgr->createEntity("entRueda04", "ruedaDetallada.mesh");
+		//nodeRueda04->translate(7.95,3.517,9.462);
+		_entRueda04->setMaterialName("shRueda02");
+		nodeRueda04->attachObject(_entRueda04);
+
+		/*extendido translate(0.0,6.0,-15.0) setScale(1.0,1.0,1.0)*/
+
+		//Spaceship transformation animation
+		float transform_anim_duration = 2.0;
+		Ogre::Animation* animationExpandRightWing = mSceneMgr->createAnimation("expandRightWingAnimation",transform_anim_duration);
+		Ogre::Animation* animationExpandLeftWing = mSceneMgr->createAnimation("expandLeftWingAnimation",transform_anim_duration);
+		Ogre::Animation* animationRollWheel1 = mSceneMgr->createAnimation("rollWheel1Animation",transform_anim_duration);
+		Ogre::Animation* animationRollWheel2 = mSceneMgr->createAnimation("rollWheel2Animation",transform_anim_duration);
+		Ogre::Animation* animationRollWheel3 = mSceneMgr->createAnimation("rollWheel3Animation",transform_anim_duration);
+		Ogre::Animation* animationRollWheel4 = mSceneMgr->createAnimation("rollWheel4Animation",transform_anim_duration);
+		Ogre::Animation* animationTurbine = mSceneMgr->createAnimation("turbineAnimation",transform_anim_duration);
+		animationExpandRightWing->setInterpolationMode(Animation::IM_SPLINE);
+		animationExpandLeftWing->setInterpolationMode(Animation::IM_SPLINE);
+		animationRollWheel1->setInterpolationMode(Animation::IM_SPLINE);
+		animationRollWheel2->setInterpolationMode(Animation::IM_SPLINE);
+		animationRollWheel3->setInterpolationMode(Animation::IM_SPLINE);
+		animationRollWheel4->setInterpolationMode(Animation::IM_SPLINE);
+		animationTurbine->setInterpolationMode(Animation::IM_SPLINE);
+		Ogre::NodeAnimationTrack* expRightWingTrack = animationExpandRightWing->createNodeTrack(0,wing1);
+		Ogre::NodeAnimationTrack* expLeftWingTrack = animationExpandLeftWing->createNodeTrack(0,wing2);
+		Ogre::NodeAnimationTrack* rollWheel1Track = animationRollWheel1->createNodeTrack(0,nodeRueda01);
+		Ogre::NodeAnimationTrack* rollWheel2Track = animationRollWheel2->createNodeTrack(0,nodeRueda02);
+		Ogre::NodeAnimationTrack* rollWheel3Track = animationRollWheel3->createNodeTrack(0,nodeRueda03);
+		Ogre::NodeAnimationTrack* rollWheel4Track = animationRollWheel4->createNodeTrack(0,nodeRueda04);
+		Ogre::NodeAnimationTrack* turbineTrack = animationTurbine->createNodeTrack(0,turbine);
+
+		Ogre::TransformKeyFrame* keyExpand1;
+		Ogre::TransformKeyFrame* keyExpand2;
+		Ogre::TransformKeyFrame* keyRoll1;
+		Ogre::TransformKeyFrame* keyRoll2;
+		Ogre::TransformKeyFrame* keyRoll3;
+		Ogre::TransformKeyFrame* keyRoll4;
+		Ogre::TransformKeyFrame* keyTurbine;
+
+		keyExpand1 = expRightWingTrack->createNodeKeyFrame(0.0);
+		keyExpand1->setScale(Ogre::Vector3(0.0,3.0,2.0));
+		keyExpand1->setTranslate(Ogre::Vector3(0.0,4.0,0.0));
+		keyExpand2 = expLeftWingTrack->createNodeKeyFrame(0.0);
+		keyExpand2->setScale(Ogre::Vector3(0.0,3.0,2.0));
+		keyExpand2->setTranslate(Ogre::Vector3(0.0,4.0,0.0));
+		keyRoll1 = rollWheel1Track->createNodeKeyFrame(0.0);
+		keyRoll1->setRotation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3(0,0,1)));
+		keyRoll2 = rollWheel2Track->createNodeKeyFrame(0.0);
+		keyRoll2->setRotation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3(0,0,1)));
+		keyRoll3 = rollWheel3Track->createNodeKeyFrame(0.0);
+		keyRoll3->setRotation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3(0,0,1)));
+		keyRoll4 = rollWheel4Track->createNodeKeyFrame(0.0);
+		keyRoll4->setRotation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3(0,0,1)));
+		keyTurbine = turbineTrack->createNodeKeyFrame(0.0);
+		keyTurbine->setScale(Ogre::Vector3(1.0,0.0,1.0));
+		keyTurbine->setTranslate(Ogre::Vector3(0.0,6.0,0.0));
+		keyTurbine->setRotation(Ogre::Quaternion(Ogre::Degree(0), Ogre::Vector3(1,0,0)));
+
+
+		keyExpand1 = expRightWingTrack->createNodeKeyFrame(2.0);
+		keyExpand1->setScale(Ogre::Vector3(2.0,3.0,2.0));
+		keyExpand1->setTranslate(Ogre::Vector3(-10.0,4.0,0.0));
+		keyExpand2 = expLeftWingTrack->createNodeKeyFrame(2.0);
+		keyExpand2->setScale(Ogre::Vector3(2.0,3.0,2.0));
+		keyExpand2->setTranslate(Ogre::Vector3(10.0,4.0,0.0));
+		keyRoll1 = rollWheel1Track->createNodeKeyFrame(2.0);
+		keyRoll1->setRotation(Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(0,0,1)));
+		keyRoll2 = rollWheel2Track->createNodeKeyFrame(2.0);
+		keyRoll2->setRotation(Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(0,0,1)));
+		keyRoll3 = rollWheel3Track->createNodeKeyFrame(2.0);
+		keyRoll3->setRotation(Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(0,0,1)));
+		keyRoll4 = rollWheel4Track->createNodeKeyFrame(2.0);
+		keyRoll4->setRotation(Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(0,0,1)));
+		keyTurbine = turbineTrack->createNodeKeyFrame(2.0);
+		keyTurbine->setScale(Ogre::Vector3(1.0,1.0,1.0));
+		keyTurbine->setTranslate(Ogre::Vector3(0.0,6.0,-15.0));
+		keyTurbine->setRotation(Ogre::Quaternion(Ogre::Degree(90), Ogre::Vector3(1,0,0)));
+
+		animationStateExpRightWing =  mSceneMgr->createAnimationState("expandRightWingAnimation");
+		animationStateExpLeftWing =  mSceneMgr->createAnimationState("expandLeftWingAnimation");
+		animationStateRollWheel1 =  mSceneMgr->createAnimationState("rollWheel1Animation");
+		animationStateRollWheel2 =  mSceneMgr->createAnimationState("rollWheel2Animation");
+		animationStateRollWheel3 =  mSceneMgr->createAnimationState("rollWheel3Animation");
+		animationStateRollWheel4 =  mSceneMgr->createAnimationState("rollWheel4Animation");
+		animationStateTurbine = mSceneMgr->createAnimationState("turbineAnimation");
+
+		animationStateExpRightWing->setLoop(false);
+		animationStateExpLeftWing->setLoop(false);
+		animationStateRollWheel1->setLoop(false);
+		animationStateRollWheel2->setLoop(false);
+		animationStateRollWheel3->setLoop(false);
+		animationStateRollWheel4->setLoop(false);
+		animationStateTurbine->setLoop(false);
+
+
 
 		//BordePista
 		Ogre::SceneNode* _nodeBPista = mSceneMgr->createSceneNode("BordePista");
@@ -647,13 +1175,15 @@ public:
 		
 		//Decor 3
 		Ogre::Entity* entityDecor3[8];
+		Ogre::Entity* entityDecorBase3[8];
 		Ogre::SceneNode* nodeDecor3[8];
+		Ogre::SceneNode* nodeDecorBase3[8];
 		int temp = 1;
 		for (int i = 0; i < (sizeof(entityDecor3) / sizeof(entityDecor3[0])); i++) // Loop through the entities
 		{
 			// Since array elements start from 0, we add 1, so the entity and node names start from 1 :)
 			Ogre::String number = Ogre::StringConverter::toString(i + 1); 
- 
+			
 			// Add the current element number to the entity/scene node name to avoid confusion
 			entityDecor3[i] = mSceneMgr->createEntity("Decor30 " + number, "athene.mesh");
 			entityDecor3[i]->setMaterialName("lambert1");
@@ -662,12 +1192,26 @@ public:
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
 			nodeDecor3[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
-			nodeDecor3[i]->setPosition(temp*190 ,40, i * 250 + 500);
+			nodeDecor3[i]->setPosition(temp*220 ,110, i * 250 + 500);
 			nodeDecor3[i]->setScale(0.5,0.5,0.5);
 			nodeDecor3[i]->attachObject(entityDecor3[i]);
 			// Let us know how many entities we have on screen, completely unnecessary
 			printf("Created Entity No. %i \n", i);
+
+			entityDecorBase3[i] = mSceneMgr->createEntity("DecorBase30 " + number, "cube.mesh");
+			entityDecorBase3[i]->setMaterialName("lambert1");
+			nodeDecorBase3[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeDecorBase3 " + number);
+			nodeDecorBase3[i]->scale(0.3,0.7,0.3);
+			nodeDecorBase3[i]->setPosition(temp*230 ,35, i * 250 + 500);
+			nodeDecorBase3[i]->attachObject(entityDecorBase3[i]);
 		}
+
+		/*nodeDecor3[1]->setPosition(0,110,0);
+		Ogre::Entity *ent = mSceneMgr->createEntity("ent", "cube.mesh");
+		Ogre::SceneNode* nod = mSceneMgr->getRootSceneNode()->createChildSceneNode();
+		nod->attachObject(ent);
+		nod->scale(0.3,0.7,0.3);
+		nod->setPosition(10,35,0);*/
 
 		//Decor 4
 		Ogre::SceneNode* nodeDecor04 = mSceneMgr->createSceneNode("Decor04");
@@ -691,10 +1235,11 @@ public:
 		nodeDecor05->scale(0.5,0.5,0.5);
 		nodeDecor05->attachObject(entDecor05);
 
-
 		//Decor 6
 		Ogre::Entity* entityDecor6[5];
 		Ogre::SceneNode* nodeDecor6[5];
+		Ogre::Entity* entityDecorBase6[5];
+		Ogre::SceneNode* nodeDecorBase6[5];
 		temp = 1;
 		for (int i = 0; i < (sizeof(entityDecor6) / sizeof(entityDecor6[0])); i++) // Loop through the entities
 		{
@@ -709,11 +1254,18 @@ public:
 			// Distance the nodes from each other, so they aren't at the same place, and then attach them
 			temp *= -1;
 			nodeDecor6[i]->rotate(Quaternion (Degree(-temp*90), Vector3::UNIT_Y));
-			nodeDecor6[i]->setPosition(temp*190 ,40, i * 100 + 5700);
+			nodeDecor6[i]->setPosition(temp*220 ,110, i * 100 + 5700);
 			nodeDecor6[i]->setScale(0.5,0.5,0.5);
 			nodeDecor6[i]->attachObject(entityDecor6[i]);
 			// Let us know how many entities we have on screen, completely unnecessary
 			printf("Created Entity No. %i \n", i);
+
+			entityDecorBase6[i] = mSceneMgr->createEntity("DecorBase60 " + number, "cube.mesh");
+			entityDecorBase6[i]->setMaterialName("lambert1");
+			nodeDecorBase6[i] = mSceneMgr->getRootSceneNode()->createChildSceneNode("nodeDecorBase6 " + number);
+			nodeDecorBase6[i]->scale(0.3,0.7,0.3);
+			nodeDecorBase6[i]->setPosition(temp*230 ,35, i * 100 + 5700);
+			nodeDecorBase6[i]->attachObject(entityDecorBase6[i]);
 		}
 
 		//Obstacles 1
@@ -806,7 +1358,7 @@ public:
 		
 		for (int i = 0; i < 8; i++){
 			movingObstDir[i] = rand() % 2;
-			movingObstSpeed[i] = rand() % 20 + 115;
+			movingObstSpeed[i] = rand() % 50 + 200;
 		};
 
 
